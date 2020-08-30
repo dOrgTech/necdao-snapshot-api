@@ -1,11 +1,12 @@
 import { GraphQLClient } from "../graphql/client"
 import { GET_BPT_HOLDERS } from "../graphql/queries"
 import { parse } from 'json2csv';
-import { writeFileSync } from "fs";
+import { writeFileSync, existsSync, mkdirSync } from "fs";
 import compressing from 'compressing';
 import { SNAPSHOTS_DIR, COMPRESSED_DIR, COMPRESSED_FILENAME } from "../utils/constants";
 import { ScheduledJob } from "../utils/scheduler";
 import { scheduleJob } from "node-schedule";
+import { dir } from "console";
 
 interface PoolShares {
   userAddress: {
@@ -33,7 +34,10 @@ const getProrataShares = (poolshares: PoolShares[]) => {
 
 const saveSnapshotToFolder = (name: string, csv: string) => {
   try {
-    writeFileSync(`snapshots/${name}-${Date.now()}.csv`, csv);
+    if (!existsSync(SNAPSHOTS_DIR)){
+      mkdirSync(SNAPSHOTS_DIR);
+    }
+    writeFileSync(`${SNAPSHOTS_DIR}/${name}-${Date.now()}.csv`, csv);
   } catch (err) {
       console.error(err);
   }
@@ -41,6 +45,12 @@ const saveSnapshotToFolder = (name: string, csv: string) => {
 
 export const compressSnapshots = async () => {
   try {
+    if (!existsSync(SNAPSHOTS_DIR)){
+      mkdirSync(SNAPSHOTS_DIR);
+    }
+    if (!existsSync(COMPRESSED_DIR)){
+      mkdirSync(COMPRESSED_DIR);
+    }
     await compressing.zip.compressDir(`${SNAPSHOTS_DIR}/`, `${COMPRESSED_DIR}/${COMPRESSED_FILENAME}.zip`)
     return `${COMPRESSED_DIR}/${COMPRESSED_FILENAME}.zip`
   } catch (err) {
