@@ -3,11 +3,12 @@
     "target": "es5",
     "module": "commonjs",
     "strict": true,
-    "lib": ["ES2015"],
+    "lib": ["ES2015", "DOM", "ES2017"],
     "esModuleInterop": true,
     "outDir": "dist",
     "resolveJsonModule": true,
     "typeRoots": [
+      "./types",
       "./node_modules/@types",
     ]
   },
