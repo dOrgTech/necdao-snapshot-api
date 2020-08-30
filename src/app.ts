@@ -7,6 +7,7 @@ import  {
 } from './controllers';
 import { errorHandler } from './middlewares/errorHandler';
 import { ScheduledJob } from './utils/scheduler';
+import bodyParser from 'body-parser';
 
 const app: Application = express();
 
@@ -20,6 +21,7 @@ const requestHeaders = (_: express.Request, response: express.Response, next: ex
 };
 
 const toUse = [
+  bodyParser(),
   express.json(),
   requestHeaders
 ]

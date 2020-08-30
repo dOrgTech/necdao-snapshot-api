@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { takeSnapshot } from "../services/snapshot";
+import { takeSnapshot, rescheduleSnapshots } from "../services/snapshot";
 import { compressSnapshots } from "../services/snapshot";
 import fs from 'fs'
-import { ScheduledJob } from "../utils/scheduler";
+import { isCronValid } from "../utils/scheduler";
 
 const router = Router()
 
@@ -42,9 +42,18 @@ const getSnapshots = async (_: Request, res: Response, next: NextFunction) => {
   }
 }
 
-const scheduleSnapshots = async (_: Request, res: Response, next: NextFunction) => {
+const scheduleSnapshots = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const job = ScheduledJob.getInstance()
+    const { cronExpression } = req.body
+
+    if(!cronExpression || !isCronValid(cronExpression)) {
+      res.status(422).json('Invalid Cron Expression')
+    } else {
+      rescheduleSnapshots(cronExpression)
+
+      res.status(200).json('Snapshots rescheduled successfully')
+    }
+
   } catch(err) {
     next(err)
   }
@@ -52,6 +61,6 @@ const scheduleSnapshots = async (_: Request, res: Response, next: NextFunction) 
 
 router.get('/snapshot', takeSnapshotNow)
 router.get('/snapshot/all', getSnapshots)
-router.get('/snapshot/schedule', scheduleSnapshots)
+router.post('/snapshot/schedule', scheduleSnapshots)
 
 export default router
