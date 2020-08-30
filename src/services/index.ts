@@ -1,0 +1,1 @@
+export { takeSnapshot } from './snapshot';
