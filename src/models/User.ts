@@ -41,7 +41,7 @@ export class User {
   public static async authenticate(password: string): Promise<boolean> {
     const connection = await db.connect();
     try {
-      await connection.none("SELECT * FROM users WHERE password = $1", [
+      await connection.oneOrNone("SELECT * FROM users WHERE password = $1", [
         password,
       ]);
       return true;

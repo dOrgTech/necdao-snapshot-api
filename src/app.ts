@@ -1,5 +1,11 @@
 import express, { Application } from "express";
-import { session, initialize, use } from "passport";
+import {
+  session,
+  initialize,
+  use,
+  serializeUser,
+  deserializeUser,
+} from "passport";
 import "dotenv/config";
 import "node-fetch";
 
@@ -9,6 +15,7 @@ import { ScheduledJob } from "./utils/scheduler";
 
 import JWTStrategy from "./middlewares/checkAuth";
 import localStrategy from "./controllers/localStrategy";
+import { UserType } from "./models/User";
 
 const app: Application = express();
 
@@ -28,11 +35,16 @@ const requestHeaders = (
 const toUse = [express.json(), requestHeaders, initialize(), session()];
 
 ScheduledJob.getInstance();
+const toggleSerializeUser = (user: UserType, done: Function) =>
+  done(null, user);
+
+serializeUser(toggleSerializeUser);
+deserializeUser(toggleSerializeUser);
 
 toUse.forEach((object) => app.use(object));
 app.use("/", controllers);
-use(localStrategy)
-use(JWTStrategy)
+use(localStrategy);
+use(JWTStrategy);
 app.use(errorHandler);
 
 export default app;
