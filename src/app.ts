@@ -1,17 +1,22 @@
-import express, { Application } from 'express';
-import 'dotenv/config';
-import 'node-fetch';
+import express, { Application } from "express";
+import { session, initialize, use } from "passport";
+import "dotenv/config";
+import "node-fetch";
 
-import  {
-  controllers
-} from './controllers';
-import { errorHandler } from './middlewares/errorHandler';
-import { ScheduledJob } from './utils/scheduler';
-import bodyParser from 'body-parser';
+import { controllers } from "./controllers";
+import { errorHandler } from "./middlewares/errorHandler";
+import { ScheduledJob } from "./utils/scheduler";
+
+import JWTStrategy from "./middlewares/checkAuth";
+import localStrategy from "./controllers/localStrategy";
 
 const app: Application = express();
 
-const requestHeaders = (_: express.Request, response: express.Response, next: express.NextFunction) => {
+const requestHeaders = (
+  _: express.Request,
+  response: express.Response,
+  next: express.NextFunction
+) => {
   response.header("Access-Control-Allow-Origin", "*");
   response.header(
     "Access-Control-Allow-Headers",
@@ -20,16 +25,14 @@ const requestHeaders = (_: express.Request, response: express.Response, next: ex
   next();
 };
 
-const toUse = [
-  bodyParser(),
-  express.json(),
-  requestHeaders
-]
+const toUse = [express.json(), requestHeaders, initialize(), session()];
 
-ScheduledJob.getInstance()
+ScheduledJob.getInstance();
 
-toUse.forEach(object => app.use(object));
+toUse.forEach((object) => app.use(object));
 app.use("/", controllers);
-app.use(errorHandler)
+use(localStrategy)
+use(JWTStrategy)
+app.use(errorHandler);
 
 export default app;

@@ -3,6 +3,7 @@ import { takeSnapshot, rescheduleSnapshots } from "../services/snapshot";
 import { compressSnapshots } from "../services/snapshot";
 import fs from 'fs'
 import { isCronValid } from "../utils/scheduler";
+import { tokenVerify } from "../middlewares/tokenVerify";
 
 const router = Router()
 
@@ -59,7 +60,7 @@ const scheduleSnapshots = async (req: Request, res: Response, next: NextFunction
   }
 }
 
-router.get('/snapshot', takeSnapshotNow)
+router.get('/snapshot', tokenVerify, takeSnapshotNow)
 router.get('/snapshot/all', getSnapshots)
 router.post('/snapshot/schedule', scheduleSnapshots)
 
