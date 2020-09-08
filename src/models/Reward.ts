@@ -8,7 +8,7 @@ export interface RewardType {
   nec_earned: number
 }
 
-export class Period {
+export class Reward {
   public static async getAllFromWeek(weekId: number): Promise<RewardType[] | undefined> {
     const connection = await db.connect();
     try {
@@ -36,6 +36,23 @@ export class Period {
          JOIN week ON reward.fk_week_id = week.id
          JOIN period ON week.fk_period_id = period.id`,
         [periodId]
+      );
+      return rewards;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
+  public static async getAll(): Promise<RewardType[] | undefined> {
+    const connection = await db.connect();
+    try {
+      const rewards = await connection.manyOrNone(
+        `SELECT * FROM reward
+         JOIN week ON reward.fk_week_id = week.id
+         JOIN period ON week.fk_period_id = period.id`
       );
       return rewards;
     } catch (error) {

@@ -21,14 +21,29 @@ export class Period {
     }
   }
 
-  public static async insert(params: Array<string>): Promise<PeriodType | undefined> {
+  public static async insert(necToDistribute: number, weekData: { startDate: string, nec: number }[]): Promise<void> {
     const connection = await db.connect();
     try {
-      const period = await connection.oneOrNone(
-        "INSERT INTO period (nec_to_distribute) VALUES ($1) RETURNING *",
-        params
-      );
-      return period;
+      return new Promise(async (res, rej) => {
+        await db.tx(async transaction => {
+        const period = await transaction.oneOrNone(
+          "INSERT INTO period (nec_to_distribute) VALUES ($1) RETURNING *",
+          [necToDistribute]
+        );
+
+        for(let i = 0; i < weekData.length; i++) {
+          const { startDate, nec } = weekData[i]
+
+          await transaction.oneOrNone(
+            `INSERT INTO week 
+             (fk_period_id, nec_to_distribute, start_date, closed) 
+             VALUES ($1, $2, $3, false) 
+             RETURNING *`,
+            [period.id, nec, startDate]
+          );
+        }
+      }).then(() => res()).catch(() => rej())
+    })
     } catch (error) {
       console.log("Error ", error);
       return undefined;
