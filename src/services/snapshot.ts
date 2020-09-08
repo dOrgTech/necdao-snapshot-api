@@ -6,7 +6,6 @@ import compressing from 'compressing';
 import { SNAPSHOTS_DIR, COMPRESSED_DIR, COMPRESSED_FILENAME } from "../utils/constants";
 import { ScheduledJob } from "../utils/scheduler";
 import { scheduleJob } from "node-schedule";
-import { dir } from "console";
 
 interface PoolShares {
   userAddress: {
@@ -63,14 +62,19 @@ export const takeSnapshot = async () => {
   const { data } = await apolloClient.query({
     query: GET_BPT_HOLDERS,
   })
+  
+  const shares = getProrataShares(data.poolShares)
+  
 
-  if(data && data.poolShares) {
-    const shares = getProrataShares(data.poolShares)
-    const csv = parse(shares)
-    saveSnapshotToFolder('snapshot', csv)
+  console.log(data)
+  // if(data && data.poolShares) {
 
-    return csv
-  }
+    console.log(shares)
+  //   const csv = parse(shares)
+  //   saveSnapshotToFolder('snapshot', csv)
+
+  //   return csv
+  // }
 }
 
 export const rescheduleSnapshots = (cronRule: string) => {
