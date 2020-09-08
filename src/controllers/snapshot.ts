@@ -9,12 +9,14 @@ const router = Router()
 
 const takeSnapshotNow = async (_: Request, res: Response, next: NextFunction) => {
   try {
-    const snapshotData = await takeSnapshot()
-    // if(snapshotData) {
-    //   res.header('Content-Type', 'text/csv');
-    //   res.attachment(`snapshot.csv`);
-    //   res.send(snapshotData)
-    // }
+    const snapshotTaken = await takeSnapshot()
+    if(!snapshotTaken) {
+      res.send({
+        status: 403,
+        message: "Snapshot already taken this week"
+      })
+      return
+    }
     res.send({ status: 200 })
   } catch(err) {
     next(err)
@@ -64,12 +66,5 @@ const scheduleSnapshots = async (req: Request, res: Response, next: NextFunction
 router.get('/snapshot', /* tokenVerify, */ takeSnapshotNow)
 router.get('/snapshot/all', getSnapshots)
 router.post('/snapshot/schedule', scheduleSnapshots)
-
-
-const create = async (req: Request, res: Response, next: NextFunction) => { 
-
-}
-
-router.post('/take', create)
 
 export default router

@@ -10,7 +10,6 @@ import "dotenv/config";
 import "node-fetch";
 
 import { controllers } from "./controllers";
-import { errorHandler } from "./middlewares/errorHandler";
 import { ScheduledJob } from "./utils/scheduler";
 
 import JWTStrategy from "./middlewares/checkAuth";
@@ -45,6 +44,6 @@ toUse.forEach((object) => app.use(object));
 app.use("/", controllers);
 use(localStrategy);
 use(JWTStrategy);
-app.use(errorHandler);
+//app.use(errorHandler);
 
 export default app;

@@ -7,17 +7,18 @@ export interface WeekType {
   publish_date: string
   closed: boolean
   nec_to_distribute: number
+  start_date: string
 }
 
-export class Period {
+export class Week {
   public static async getLastActive(): Promise<WeekType | undefined> {
     const connection = await db.connect();
     try {
       const week = await connection.oneOrNone(
         `SELECT * FROM week 
-         WHERE closed = false 
          JOIN period ON week.fk_period_id = period.id 
-         ORDER BY id ASC 
+         WHERE closed = false 
+         ORDER BY week.id ASC 
          LIMIT 1`
       );
       return week;
@@ -54,8 +55,8 @@ export class Period {
     try {
       const week = await connection.oneOrNone(
         `INSERT INTO week 
-         (fk_period_id, closed, nec_to_distribute) 
-         VALUES ($1, $2, $3) 
+         (fk_period_id, closed, nec_to_distribute, start_date) 
+         VALUES ($1, false, $2, $3) 
          RETURNING *`,
         params
       );
