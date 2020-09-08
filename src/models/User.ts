@@ -10,7 +10,7 @@ export class User {
     const connection = await db.connect();
     try {
       const user = await connection.oneOrNone(
-        "SELECT * FROM users WHERE email = $1",
+        "SELECT * FROM user WHERE email = $1",
         [email]
       );
       return user;
@@ -26,7 +26,7 @@ export class User {
     const connection = await db.connect();
     try {
       const user = await connection.oneOrNone(
-        "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *",
+        "INSERT INTO user (email, password) VALUES ($1, $2) RETURNING *",
         params
       );
       return user;
@@ -41,7 +41,7 @@ export class User {
   public static async authenticate(password: string): Promise<boolean> {
     const connection = await db.connect();
     try {
-      await connection.oneOrNone("SELECT * FROM users WHERE password = $1", [
+      await connection.oneOrNone("SELECT * FROM user WHERE password = $1", [
         password,
       ]);
       return true;
