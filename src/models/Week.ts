@@ -8,6 +8,8 @@ export interface WeekType {
   closed: boolean
   nec_to_distribute: number
   start_date: string
+  week_nec?: number
+  week_id?: number
 }
 
 export class Week {
@@ -15,11 +17,31 @@ export class Week {
     const connection = await db.connect();
     try {
       const week = await connection.oneOrNone(
-        `SELECT * FROM week 
-         JOIN period ON week.fk_period_id = period.id 
-         WHERE closed = false 
-         ORDER BY week.id ASC 
-         LIMIT 1`
+        `SELECT week.nec_to_distribute as week_nec, p.id as period_id, * FROM week
+        JOIN period as p ON week.fk_period_id = p.id 
+        WHERE closed = false 
+        ORDER BY start_date ASC 
+        LIMIT 1`
+      );
+      return week;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
+  public static async getCurrent(currentDate: string): Promise<WeekType | undefined> {
+    const connection = await db.connect();
+    try {
+      const week = await connection.oneOrNone(
+        `SELECT week.nec_to_distribute as week_nec, week.id as week_id, * FROM week
+        JOIN period as p ON week.fk_period_id = p.id 
+        WHERE start_date >= $1 
+        ORDER BY start_date ASC 
+        LIMIT 1`,
+        [currentDate]
       );
       return week;
     } catch (error) {

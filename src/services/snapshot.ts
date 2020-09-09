@@ -71,11 +71,13 @@ export const takeSnapshot = async (): Promise<boolean> => {
   })
   
   const shares = getProrataShares(data.poolShares)
-  const week = await Week.getLastActive()
   const today = dayjs.utc();
-  if (dayjs.utc(week?.start_date).isBefore(today)) {
-    const distribution = week!.nec_to_distribute
+  const week = await Week.getCurrent(today.format('YYYY-MM-DD'))
+  
+  if (week && !week.snapshot_date) {
+    const distribution = week!.week_nec as number
     const paramsInfo = shares.map(share => {
+      console.log(share)
       const { address, balance, prorataPercentage } = share
       return {
         address,
@@ -83,7 +85,7 @@ export const takeSnapshot = async (): Promise<boolean> => {
         nec_earned: distribution * (prorataPercentage / 100)
       }
     })
-    await Reward.insertAllAddresses(week!.id, paramsInfo)
+    await Reward.insertAllAddresses(week!.week_id as number, paramsInfo)
     return true
   }
 

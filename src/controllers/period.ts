@@ -9,17 +9,21 @@ const router = Router();
 dayjs.extend(utc)
 
 export const schedulePeriod = async (request: Request, response: Response) => {
-  const { weeks, nec_to_distribute, start_date } = request.body;
+  const { necPerWeek, start_date } = request.body;
   try {
-    const weekData = [];
     let parsedStartDate = dayjs.utc(start_date)
 
-    for(let i = 0; i < weeks; i++) {
-      weekData.push({ startDate: parsedStartDate.startOf('week').format(), nec: 0 })
-      parsedStartDate = parsedStartDate.add(1, 'week')
-    }
+    const totalNec = (necPerWeek as number[]).reduce((prev, current) => {
+      return prev + current
+    }, 0)
 
-    await Period.insert(nec_to_distribute, weekData);
+    const weekData = necPerWeek.map((nec: number) => {
+      const week = { startDate: parsedStartDate.startOf('week').format(), nec }
+      parsedStartDate = parsedStartDate.add(1, 'week')
+      return week
+    })
+
+    await Period.insert(totalNec, weekData);
 
     response.status(200)
     

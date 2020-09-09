@@ -35,6 +35,19 @@ export const getThisWeekRewards = async (request: Request, response: Response) =
   // }
 };
 
+export const getRewardsByAddress = async (request: Request, response: Response) => {
+  const { address } = request.params
+
+  try {
+    const rewards = await Reward.getAllByAddress(address)
+    response.status(200).json(rewards)
+  } catch (error) {
+    console.log("Error ", error);
+    response.send({ status: 500 });
+  }
+}
+
 router.get("/reward/all", getAllRewards);
+router.get("/reward/address/:address", getRewardsByAddress)
 
 export default router;
