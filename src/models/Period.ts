@@ -6,21 +6,6 @@ export interface PeriodType {
 }
 
 export class Period {
-  public static async getLatest(): Promise<PeriodType | undefined> {
-    const connection = await db.connect();
-    try {
-      const period = await connection.oneOrNone(
-        "SELECT * FROM period ORDER BY id DESC LIMIT 1"
-      );
-      return period;
-    } catch (error) {
-      console.log("Error ", error);
-      return undefined;
-    } finally {
-      connection.done();
-    }
-  }
-
   public static async insert(necToDistribute: number, weekData: { startDate: string, nec: number }[]): Promise<void> {
     const connection = await db.connect();
     try {

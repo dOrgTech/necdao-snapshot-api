@@ -73,6 +73,7 @@ export const takeSnapshot = async (): Promise<boolean> => {
   const shares = getProrataShares(data.poolShares)
   const today = dayjs.utc();
   const week = await Week.getCurrent(today.format('YYYY-MM-DD'))
+  console.log(week)
   
   if (week && !week.snapshot_date) {
     const distribution = week!.week_nec as number

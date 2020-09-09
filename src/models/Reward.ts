@@ -65,15 +65,15 @@ export class Reward {
     }
   }
 
-  public static async getAllByAddress(address: string): Promise<RewardType[] | undefined> {
+  public static async getAllByAddress(address: string, periodId: string): Promise<RewardType[] | undefined> {
     const connection = await db.connect();
     try {
       const rewards = await connection.manyOrNone(
-        `SELECT week.nec_to_distribute as week_nec, week.id as week_id, * FROM reward
-         JOIN week ON reward.fk_week_id = week.id
+        `SELECT ROW_NUMBER() OVER() as week_number, week.nec_to_distribute as week_nec, week.id as week_id, * FROM reward
+         RIGHT JOIN week ON reward.fk_week_id = week.id
          JOIN period ON week.fk_period_id = period.id
-         WHERE address = $1`,
-        [address]
+         WHERE address = $1 OR address IS NULL AND fk_period_id = $2`,
+        [address, periodId]
       );
       return rewards;
     } catch (error) {

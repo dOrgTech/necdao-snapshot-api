@@ -32,6 +32,40 @@ export class Week {
     }
   }
 
+  public static async getAllWeekIdsByPeriod(periodId: string) {
+    const connection = await db.connect();
+    try {
+      const week = await connection.manyOrNone(
+        `SELECT id, fk_period_id FROM week WHERE fk_period_id = $1`,
+        [periodId]
+      );
+      return week;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
+  public static async getLastWeek(): Promise<WeekType | undefined> {
+    const connection = await db.connect();
+    try {
+      const week = await connection.oneOrNone(
+        `SELECT week.nec_to_distribute as week_nec, p.id as period_id, week.start_date FROM week
+        JOIN period as p ON week.fk_period_id = p.id 
+        ORDER BY start_date DESC 
+        LIMIT 1`
+      );
+      return week;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
   public static async getCurrent(currentDate: string): Promise<WeekType | undefined> {
     const connection = await db.connect();
     try {
@@ -52,14 +86,14 @@ export class Week {
     }
   }
 
-  public static async getByPeriod(periodId: number): Promise<WeekType | undefined> {
+  public static async getLastWeekByPeriod(periodId: number): Promise<WeekType | undefined> {
     const connection = await db.connect();
     try {
       const week = await connection.oneOrNone(
-        `SELECT * FROM week 
-         WHERE week.fk_period_id = $1 
+        `SELECT * FROM week  
          JOIN period ON week.fk_period_id = period.id 
-         ORDER BY id ASC 
+         WHERE week.fk_period_id = $1
+         ORDER BY start_date DESC
          LIMIT 1`,
         [periodId]
       );

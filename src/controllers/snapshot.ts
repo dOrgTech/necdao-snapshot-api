@@ -4,6 +4,8 @@ import { compressSnapshots } from "../services/snapshot";
 import fs from 'fs'
 import { isCronValid } from "../utils/scheduler";
 import { tokenVerify } from "../middlewares/tokenVerify";
+import { Week } from "../models/Week";
+import dayjs from "dayjs";
 
 const router = Router()
 
@@ -63,7 +65,30 @@ const scheduleSnapshots = async (req: Request, res: Response, next: NextFunction
   }
 }
 
-router.get('/snapshot', /* tokenVerify, */ takeSnapshotNow)
+export const getCurrentSnapshot = async (_: Request, response: Response) => {
+  try {
+    const currentWeek = await Week.getCurrent(dayjs.utc().format())
+    const snapshotTaken = currentWeek && currentWeek.snapshot_date
+    const formattedSnapshot = snapshotTaken && dayjs(snapshotTaken).format()
+
+    if(formattedSnapshot) {
+      response.status(200).json({
+        snapshotDate: formattedSnapshot
+      })
+    } else {
+      response.status(200).json({
+        snapshotDate: null
+      })
+    }
+    
+  } catch (error) {
+    console.log("Error ", error);
+    response.send({ status: 500 });
+  }
+};
+
+router.post('/snapshot', /* tokenVerify, */ takeSnapshotNow)
+router.get('/snapshot/current', getCurrentSnapshot)
 router.get('/snapshot/all', getSnapshots)
 router.post('/snapshot/schedule', scheduleSnapshots)
 
