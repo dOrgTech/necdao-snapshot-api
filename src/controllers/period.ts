@@ -24,8 +24,7 @@ export const schedulePeriod = async (request: Request, response: Response) => {
     })
 
     await Period.insert(totalNec, weekData);
-
-    response.status(200)
+    response.send({ status: 200 })
     
   } catch (error) {
     console.log("Error ", error);

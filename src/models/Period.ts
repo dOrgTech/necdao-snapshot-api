@@ -24,14 +24,13 @@ export class Period {
   public static async insert(necToDistribute: number, weekData: { startDate: string, nec: number }[]): Promise<void> {
     const connection = await db.connect();
     try {
-      return new Promise(async (res, rej) => {
-        await db.tx(async transaction => {
+      await db.tx(async transaction => {
         const period = await transaction.oneOrNone(
           "INSERT INTO period (nec_to_distribute) VALUES ($1) RETURNING *",
           [necToDistribute]
         );
 
-        for(let i = 0; i < weekData.length; i++) {
+        for (let i = 0; i < weekData.length; i++) {
           const { startDate, nec } = weekData[i]
 
           await transaction.oneOrNone(
@@ -42,8 +41,7 @@ export class Period {
             [period.id, nec, startDate]
           );
         }
-      }).then(() => res()).catch(() => rej())
-    })
+      })
     } catch (error) {
       console.log("Error ", error);
       return undefined;
