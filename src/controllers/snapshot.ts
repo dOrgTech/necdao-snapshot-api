@@ -3,17 +3,23 @@ import { takeSnapshot, rescheduleSnapshots } from "../services/snapshot";
 import { compressSnapshots } from "../services/snapshot";
 import fs from 'fs'
 import { isCronValid } from "../utils/scheduler";
+import { tokenVerify } from "../middlewares/tokenVerify";
+import { Week } from "../models/Week";
+import dayjs from "dayjs";
 
 const router = Router()
 
 const takeSnapshotNow = async (_: Request, res: Response, next: NextFunction) => {
   try {
-    const snapshotData = await takeSnapshot()
-    if(snapshotData) {
-      res.header('Content-Type', 'text/csv');
-      res.attachment(`snapshot.csv`);
-      res.send(snapshotData)
+    const snapshotTaken = await takeSnapshot()
+    if(!snapshotTaken) {
+      res.send({
+        status: 403,
+        message: "Snapshot already taken this week"
+      })
+      return
     }
+    res.send({ status: 200 })
   } catch(err) {
     next(err)
   }
@@ -59,7 +65,30 @@ const scheduleSnapshots = async (req: Request, res: Response, next: NextFunction
   }
 }
 
-router.get('/snapshot', takeSnapshotNow)
+export const getCurrentSnapshot = async (_: Request, response: Response) => {
+  try {
+    const currentWeek = await Week.getCurrent(dayjs.utc().format())
+    const snapshotTaken = currentWeek && currentWeek.snapshot_date
+    const formattedSnapshot = snapshotTaken && dayjs(snapshotTaken).format()
+
+    if(formattedSnapshot) {
+      response.status(200).json({
+        snapshotDate: formattedSnapshot
+      })
+    } else {
+      response.status(200).json({
+        snapshotDate: null
+      })
+    }
+    
+  } catch (error) {
+    console.log("Error ", error);
+    response.send({ status: 500 });
+  }
+};
+
+router.post('/snapshot', /* tokenVerify, */ takeSnapshotNow)
+router.get('/snapshot/current', getCurrentSnapshot)
 router.get('/snapshot/all', getSnapshots)
 router.post('/snapshot/schedule', scheduleSnapshots)
 

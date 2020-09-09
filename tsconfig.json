@@ -5,10 +5,12 @@
     "strict": true,
     "lib": ["ES2015", "DOM", "ES2017"],
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "outDir": "dist",
     "resolveJsonModule": true,
     "typeRoots": [
       "./types",
+      "./custom_typings",
       "./node_modules/@types",
     ]
   },

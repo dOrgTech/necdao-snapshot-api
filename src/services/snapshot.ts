@@ -1,12 +1,18 @@
+import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc'
+
 import { GraphQLClient } from "../graphql/client"
 import { GET_BPT_HOLDERS } from "../graphql/queries"
-import { parse } from 'json2csv';
 import { writeFileSync, existsSync, mkdirSync } from "fs";
 import compressing from 'compressing';
 import { SNAPSHOTS_DIR, COMPRESSED_DIR, COMPRESSED_FILENAME } from "../utils/constants";
 import { ScheduledJob } from "../utils/scheduler";
 import { scheduleJob } from "node-schedule";
-import { dir } from "console";
+import { Week } from "../models/Week";
+import { Reward } from "../models/Reward";
+
+dayjs.Ls.en.weekStart = 1;
+dayjs.extend(utc)
 
 interface PoolShares {
   userAddress: {
@@ -58,19 +64,35 @@ export const compressSnapshots = async () => {
   }
 }
 
-export const takeSnapshot = async () => {
+export const takeSnapshot = async (): Promise<boolean> => {
   const apolloClient = GraphQLClient.getInstance()
   const { data } = await apolloClient.query({
     query: GET_BPT_HOLDERS,
   })
-
-  if(data && data.poolShares) {
-    const shares = getProrataShares(data.poolShares)
-    const csv = parse(shares)
-    saveSnapshotToFolder('snapshot', csv)
-
-    return csv
+  
+  const shares = getProrataShares(data.poolShares)
+  const today = dayjs.utc();
+  const week = await Week.getCurrent(today.format('YYYY-MM-DD'))
+  console.log(week)
+  
+  if (week && !week.snapshot_date) {
+    const distribution = week!.week_nec as number
+    const paramsInfo = shares.map(share => {
+      console.log(share)
+      const { address, balance, prorataPercentage } = share
+      return {
+        address,
+        bpt_balance: balance,
+        nec_earned: distribution * (prorataPercentage / 100)
+      }
+    })
+    await Reward.insertAllAddresses(week!.week_id as number, paramsInfo)
+    return true
   }
+
+  return false
+
+
 }
 
 export const rescheduleSnapshots = (cronRule: string) => {
