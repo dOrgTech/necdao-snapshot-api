@@ -11,8 +11,7 @@ export class ScheduledJob {
 
   public static getInstance = () => {
     if(!ScheduledJob.instance) {
-      // ScheduledJob.instance = scheduleJob('* * 16 * * */0', async () => {
-      ScheduledJob.instance = scheduleJob('*/10 * * * * *', async () => {
+      ScheduledJob.instance = scheduleJob('* * 16 * * */0', async () => {
         console.log("Running job!")
         await takeSnapshot();
         await publishWeek();
