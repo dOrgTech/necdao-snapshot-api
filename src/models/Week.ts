@@ -84,6 +84,26 @@ export class Week {
     }
   }
 
+  public static async getNextWeekByPeriod(periodId: string): Promise<any | undefined> {
+    const connection = await db.connect();
+    try {
+      const week = await connection.oneOrNone(
+        `SELECT week.nec_to_distribute as week_nec, week.id as week_id, p.nec_to_distribute as period_nec, * FROM week
+        JOIN period as p ON week.fk_period_id = p.id
+        WHERE p.id = $1
+        ORDER BY start_date ASC 
+        LIMIT 1`,
+        [periodId]
+      );
+      return week;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
   public static async getLastWeekByPeriod(periodId: number): Promise<WeekType | undefined> {
     const connection = await db.connect();
     try {

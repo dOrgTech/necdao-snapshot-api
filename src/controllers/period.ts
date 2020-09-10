@@ -38,7 +38,7 @@ export const schedulePeriod = async (request: Request, response: Response) => {
     
   } catch (error) {
     console.log("Error ", error);
-    response.send({ status: 500 });
+    response.status(500).send({ error: true  });
   }
 };
 
@@ -63,7 +63,7 @@ export const getLastPeriodEndDate = async (_: Request, response: Response) => {
     
   } catch (error) {
     console.log("Error ", error);
-    response.send({ status: 500 });
+    response.status(500).send({ error: true  });
   }
 };
 

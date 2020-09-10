@@ -4,11 +4,14 @@ import { GET_POOL_DATA, GET_BPT_HOLDERS } from "../graphql/queries";
 import { Period } from "../models/Period";
 import { Week } from "../models/Week";
 import dayjs from "dayjs";
+import { actualWeekNumber } from "../utils/day";
+import { Reward } from "../models/Reward";
 
 const router = Router();
 
 export const calculateAPY = async (_: Request, response: Response) => {
   try {
+    
     const apolloClient = GraphQLClient.getInstance();
     const { data: poolData } = await apolloClient.query({
       query: GET_POOL_DATA,
@@ -35,8 +38,18 @@ export const calculateAPY = async (_: Request, response: Response) => {
         return prev + Number(current.balance);
       }, 0);
 
-    const currentWeek = (await Week.getCurrent(dayjs.utc().format())) as any;
-    const currentNecToDistribute = currentWeek ? Number(currentWeek.period_nec) : 0;
+    const nextPeriod = await Reward.getNextPeriodId()
+
+    if(!nextPeriod) {
+      response
+        .status(200)
+        .json({ necPrice })
+      return
+    }
+
+    const nextWeek = await Week.getNextWeekByPeriod(nextPeriod.id)
+
+    const currentNecToDistribute = nextWeek ? Number(nextWeek.period_nec) : 0;
 
     const bptPrice = liquidity / bptBalanceSum;
 
@@ -61,7 +74,7 @@ export const calculateAPY = async (_: Request, response: Response) => {
     }
   } catch (error) {
     console.log("Error ", error);
-    response.send({ status: 500 });
+    response.status(500).send({ error: true  });
   }
 };
 
