@@ -14,7 +14,7 @@ import { ScheduledJob } from "./utils/scheduler";
 
 import JWTStrategy from "./middlewares/checkAuth";
 import localStrategy from "./controllers/localStrategy";
-import { UserType } from "./models/User";
+import { UserType } from "./models";
 
 const app: Application = express();
 

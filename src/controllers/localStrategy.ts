@@ -1,5 +1,5 @@
 import { Strategy } from "passport-local";
-import { User } from "../models/User";
+import { User } from "../models";
 
 const userProperties = { usernameField: "email", passwordField: "password" };
 

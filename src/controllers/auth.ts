@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { authenticate } from "passport";
 import { sign, Secret } from "jsonwebtoken";
 
-import { User, UserType } from "../models/User";
+import { User, UserType } from "../models";
 
 const router = Router();
 

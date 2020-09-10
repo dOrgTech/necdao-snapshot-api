@@ -1,17 +1,9 @@
 import { actualWeekNumber, today } from "../utils/day";
 import { GraphQLClient } from "../graphql/client";
 import { GET_BPT_HOLDERS } from "../graphql/queries";
-import { writeFileSync, existsSync, mkdirSync } from "fs";
-import compressing from "compressing";
-import {
-  SNAPSHOTS_DIR,
-  COMPRESSED_DIR,
-  COMPRESSED_FILENAME,
-} from "../utils/constants";
-import { ScheduledJob } from "../utils/scheduler";
-import { scheduleJob } from "node-schedule";
-import { Week } from "../models/Week";
-import { Reward } from "../models/Reward";
+
+import { Week } from "../models";
+import { Reward } from "../models";
 
 interface PoolShares {
   userAddress: {
@@ -34,35 +26,6 @@ const getProrataShares = (poolshares: PoolShares[]) => {
       prorataPercentage: (userBalance * 100) / totalShares,
     };
   });
-};
-
-const saveSnapshotToFolder = (name: string, csv: string) => {
-  try {
-    if (!existsSync(SNAPSHOTS_DIR)) {
-      mkdirSync(SNAPSHOTS_DIR);
-    }
-    writeFileSync(`${SNAPSHOTS_DIR}/${name}-${Date.now()}.csv`, csv);
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-export const compressSnapshots = async () => {
-  try {
-    if (!existsSync(SNAPSHOTS_DIR)) {
-      mkdirSync(SNAPSHOTS_DIR);
-    }
-    if (!existsSync(COMPRESSED_DIR)) {
-      mkdirSync(COMPRESSED_DIR);
-    }
-    await compressing.zip.compressDir(
-      `${SNAPSHOTS_DIR}/`,
-      `${COMPRESSED_DIR}/${COMPRESSED_FILENAME}.zip`
-    );
-    return `${COMPRESSED_DIR}/${COMPRESSED_FILENAME}.zip`;
-  } catch (err) {
-    console.error(err);
-  }
 };
 
 export const takeSnapshot = async (): Promise<boolean> => {
@@ -102,9 +65,4 @@ export const publishWeek = async (): Promise<boolean> => {
     console.log("Error publishing error ", e);
     return false;
   }
-};
-
-export const rescheduleSnapshots = (cronRule: string) => {
-  const job = scheduleJob(cronRule, takeSnapshot);
-  ScheduledJob.reschedule(job);
 };
