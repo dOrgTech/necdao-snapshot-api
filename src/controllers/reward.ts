@@ -27,14 +27,15 @@ export const getRewardsByAddress = async (request: Request, response: Response) 
     const rewards = periodId && await Reward.getAllByAddress(address, periodId) as any
     const weekIds = periodId && await Week.getAllWeekIdsByPeriod(periodId) as { id: number, fk_period_id: number }[]
     const formattedWeekIds = weekIds && weekIds.map(w => w.id)
-    const filterSnapshots = formattedWeekIds && rewards && rewards.map((rewardRow: any) => {
-      if(!rewardRow.closed) {
-        return { ...rewardRow, snapshot_date: null, nec_earned: null, bpt_balance: null }
+    let filterSnapshots = formattedWeekIds && rewards && rewards.map((rewardRow: any) => {
+      if (rewardRow.fk_period_id == periodId) {
+         if(!rewardRow.closed) {
+          return { ...rewardRow, snapshot_date: null, nec_earned: null, bpt_balance: null }
+        }
+        return rewardRow
       }
-
-      return rewardRow
-    })
-
+    }).filter((snapshot: any) => snapshot)
+      
     if(!filterSnapshots) {
       throw new Error('No filtered snapshots')
     }
