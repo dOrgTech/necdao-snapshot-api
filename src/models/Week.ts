@@ -72,8 +72,8 @@ export class Week {
       const week = await connection.oneOrNone(
         `SELECT week.nec_to_distribute as week_nec, week.id as week_id, * FROM week
         JOIN period as p ON week.fk_period_id = p.id 
-        WHERE start_date >= $1 
-        ORDER BY start_date ASC 
+        WHERE start_date <= $1 
+        ORDER BY start_date DESC
         LIMIT 1`,
         [currentDate]
       );
@@ -150,7 +150,7 @@ export class Week {
       const period = await connection.oneOrNone(
         `UPDATE week
          SET publish_date = $2,
-         closed = true,
+         closed = true
          WHERE id = $1
          RETURNING *`,
         [weekId, publishDate]

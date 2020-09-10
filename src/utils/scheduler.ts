@@ -1,5 +1,6 @@
 import { scheduleJob, Job } from 'node-schedule';
 import { takeSnapshot } from '../services';
+import { publishWeek } from '../services/snapshot';
  
 //0 12 * * */2 -> every tuesday at midday
 
@@ -10,7 +11,12 @@ export class ScheduledJob {
 
   public static getInstance = () => {
     if(!ScheduledJob.instance) {
-      ScheduledJob.instance = scheduleJob('0 12 * * */2', takeSnapshot);
+      // ScheduledJob.instance = scheduleJob('* * 16 * * */0', async () => {
+      ScheduledJob.instance = scheduleJob('*/10 * * * * *', async () => {
+        console.log("Running job!")
+        await takeSnapshot();
+        await publishWeek();
+      });
     }
 
     return ScheduledJob.instance
