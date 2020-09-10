@@ -66,15 +66,13 @@ export class Week {
     }
   }
 
-  public static async getCurrent(currentDate: string): Promise<WeekType | undefined> {
+  public static async getCurrent(currentDate: number): Promise<WeekType | undefined> {
     const connection = await db.connect();
     try {
       const week = await connection.oneOrNone(
         `SELECT week.nec_to_distribute as week_nec, week.id as week_id, p.nec_to_distribute as period_nec, * FROM week
         JOIN period as p ON week.fk_period_id = p.id 
-        WHERE start_date >= $1 
-        ORDER BY start_date ASC 
-        LIMIT 1`,
+        WHERE extract(week from start_date::date) = $1`,
         [currentDate]
       );
       return week;
@@ -150,7 +148,7 @@ export class Week {
       const period = await connection.oneOrNone(
         `UPDATE week
          SET publish_date = $2,
-         closed = true,
+         closed = true
          WHERE id = $1
          RETURNING *`,
         [weekId, publishDate]
