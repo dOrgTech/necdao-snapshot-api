@@ -1,13 +1,10 @@
-import e, { Router, Request, Response } from "express";
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
+import { Router, Request, Response } from "express";
+import dayjs, { actualWeekNumber } from '../utils/day'
 import { Period } from "../models/Period";
 import { Week } from "../models/Week";
-dayjs.Ls.en.weekStart = 1;
 
 const router = Router();
 
-dayjs.extend(utc)
 
 export const schedulePeriod = async (request: Request, response: Response) => {
   const { necPerWeek, start_date } = request.body;
@@ -47,7 +44,7 @@ export const schedulePeriod = async (request: Request, response: Response) => {
 
 export const getLastPeriodEndDate = async (_: Request, response: Response) => {
   try {
-    const currentWeek = await Week.getCurrent(dayjs.utc().format())
+    const currentWeek = await Week.getCurrent(actualWeekNumber)
     const periodId = currentWeek && currentWeek.fk_period_id
     const lastWeekFromPeriod = periodId && await Week.getLastWeekByPeriod(periodId)
 
