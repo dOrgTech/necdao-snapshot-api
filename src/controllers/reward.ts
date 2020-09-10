@@ -1,11 +1,8 @@
 import { Router, Request, Response } from "express";
-import { authenticate } from "passport";
-import { sign, Secret } from "jsonwebtoken";
 
 import { actualWeekNumber } from "../utils/day";
-import { Period, PeriodType } from "../models/Period";
-import { Reward } from "../models/Reward";
-import { Week } from "../models/Week";
+import { Reward } from "../models";
+import { Week } from "../models";
 
 const router = Router();
 

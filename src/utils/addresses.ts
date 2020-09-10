@@ -1,1 +1,0 @@
-export const NECwETHPoolAddress = '0xb21e53d8bd2c81629dd916eeAd08d338e7fCC201'

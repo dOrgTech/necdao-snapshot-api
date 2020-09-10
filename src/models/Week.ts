@@ -1,4 +1,4 @@
-import { db } from "../services/db";
+import { db } from "../services";
 
 export interface WeekType {
   fk_period_id: number
