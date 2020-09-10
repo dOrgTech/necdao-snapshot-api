@@ -1,11 +1,12 @@
 import { Router, Request, Response, NextFunction } from "express";
+import fs from 'fs'
+
+import dayjs, { actualWeekNumber } from '../utils/day'
 import { takeSnapshot, rescheduleSnapshots } from "../services/snapshot";
 import { compressSnapshots } from "../services/snapshot";
-import fs from 'fs'
 import { isCronValid } from "../utils/scheduler";
 import { tokenVerify } from "../middlewares/tokenVerify";
 import { Week } from "../models/Week";
-import dayjs from "dayjs";
 
 const router = Router()
 
@@ -67,7 +68,7 @@ const scheduleSnapshots = async (req: Request, res: Response, next: NextFunction
 
 export const getCurrentSnapshot = async (_: Request, response: Response) => {
   try {
-    const currentWeek = await Week.getCurrent(dayjs.utc().format())
+    const currentWeek = await Week.getCurrent(actualWeekNumber);
     const snapshotTaken = currentWeek && currentWeek.snapshot_date
     const formattedSnapshot = snapshotTaken && dayjs(snapshotTaken).format()
 

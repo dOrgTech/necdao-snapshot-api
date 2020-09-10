@@ -1,6 +1,4 @@
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-
+import { actualWeekNumber, today } from "../utils/day";
 import { GraphQLClient } from "../graphql/client";
 import { GET_BPT_HOLDERS } from "../graphql/queries";
 import { writeFileSync, existsSync, mkdirSync } from "fs";
@@ -14,9 +12,6 @@ import { ScheduledJob } from "../utils/scheduler";
 import { scheduleJob } from "node-schedule";
 import { Week } from "../models/Week";
 import { Reward } from "../models/Reward";
-
-dayjs.Ls.en.weekStart = 1;
-dayjs.extend(utc);
 
 interface PoolShares {
   userAddress: {
@@ -77,10 +72,7 @@ export const takeSnapshot = async (): Promise<boolean> => {
   });
 
   const shares = getProrataShares(data.poolShares);
-  const today = dayjs.utc();
-  const week = await Week.getCurrent(today.format("YYYY-MM-DD"));
-  // const week = await Week.getCurrent("2020-09-07").format("YYYY-MM-DD"));
-  console.log(week)
+  const week = await Week.getCurrent(actualWeekNumber);
   if (week && !week.snapshot_date) {
     const distribution = week!.week_nec as number;
     const paramsInfo = shares.map((share) => {
@@ -100,9 +92,8 @@ export const takeSnapshot = async (): Promise<boolean> => {
 
 export const publishWeek = async (): Promise<boolean> => {
   try {
-    const today = dayjs.utc().format("YYYY-MM-DD");
-    const week = await Week.getCurrent(today);
-    if (!week?.publish_date) {
+    const week = await Week.getCurrent(actualWeekNumber);
+    if (!(week?.publish_date && week!.closed)) {
       await Week.updatePublishDate(week!.week_id as number, today);
       return true;
     }

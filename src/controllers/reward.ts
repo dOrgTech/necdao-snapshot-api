@@ -2,10 +2,10 @@ import { Router, Request, Response } from "express";
 import { authenticate } from "passport";
 import { sign, Secret } from "jsonwebtoken";
 
+import { actualWeekNumber } from "../utils/day";
 import { Period, PeriodType } from "../models/Period";
 import { Reward } from "../models/Reward";
 import { Week } from "../models/Week";
-import dayjs from "dayjs";
 
 const router = Router();
 
@@ -21,9 +21,8 @@ export const getAllRewards = async (_: Request, response: Response) => {
 
 export const getRewardsByAddress = async (request: Request, response: Response) => {
   const { address } = request.params
-
   try {
-    const currentWeek = await Week.getCurrent(dayjs().format())
+    const currentWeek = await Week.getCurrent(actualWeekNumber);
     const periodId = currentWeek && currentWeek!.fk_period_id.toString()
     const rewards = periodId && await Reward.getAllByAddress(address, periodId) as any
     const weekIds = periodId && await Week.getAllWeekIdsByPeriod(periodId) as { id: number, fk_period_id: number }[]
