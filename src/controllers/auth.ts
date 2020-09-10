@@ -32,7 +32,7 @@ export const register = async (request: Request, response: Response) => {
     }
   } catch (error) {
     console.log("Error ", error);
-    response.send({ status: 500 });
+    response.status(500).send({ error: true  });
   }
 };
 

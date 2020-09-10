@@ -12,7 +12,7 @@ export const getAllRewards = async (_: Request, response: Response) => {
     response.status(200).json(rewards)
   } catch (error) {
     console.log("Error ", error);
-    response.send({ status: 500 });
+    response.status(500).send({ error: true  });
   }
 };
 
@@ -40,11 +40,35 @@ export const getRewardsByAddress = async (request: Request, response: Response) 
     response.status(200).json(filterSnapshots)
   } catch (error) {
     console.log("Error ", error);
-    response.send({ status: 500 });
+    response.status(500).send({ error: true  });
+  }
+}
+
+export const getRemainingAndTotalRewards = async (_: Request, response: Response) => {
+  try {
+    const nextPeriod = await Reward.getNextPeriodId()
+
+    if(!nextPeriod) {
+      response.status(404).json({ error: "There is no next period scheduled" })
+      return
+    }
+
+    const periodId = nextPeriod.id
+    const necResults = await Reward.getRemainingAndTotalNecByPeriod(periodId)
+
+    if(!necResults) {
+      throw new Error('Error while retrieving remaining and total period NEC results')
+    }
+
+    response.status(200).json(necResults)
+  } catch (error) {
+    console.log("Error ", error);
+    response.status(500).send({ error: true  });
   }
 }
 
 router.get("/reward/all", getAllRewards);
+router.get("/reward", getRemainingAndTotalRewards)
 router.get("/reward/address/:address", getRewardsByAddress)
 
 export default router;

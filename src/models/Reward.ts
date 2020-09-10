@@ -65,6 +65,46 @@ export class Reward {
     }
   }
 
+  public static async getNextPeriodId() {
+    const connection = await db.connect()
+    try {
+      const period = await connection.oneOrNone(
+        `SELECT period.id, week.start_date 
+        FROM period 
+        JOIN week ON week.fk_period_id = period.id 
+        WHERE week.closed = false
+        ORDER BY start_date ASC
+        LIMIT 1`
+      )
+
+      return period
+    } catch (error) {
+      console.log("Error ", error)
+      return undefined
+    } finally {
+      connection.done()
+    }
+  }
+
+  public static async getRemainingAndTotalNecByPeriod(periodId: string): Promise<{remaining_nec: number, total_nec: number} | undefined> {
+    const connection = await db.connect();
+    try {
+      const rewards = await connection.oneOrNone(
+        `SELECT SUM(week.nec_to_distribute) AS remaining_nec,
+        (SELECT period.nec_to_distribute FROM period WHERE period.id = $1) AS total_nec
+        FROM week 
+        WHERE week.closed = false`,
+         [periodId]
+      );
+      return rewards;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
   public static async getAllByAddress(address: string, periodId: string): Promise<RewardType[] | undefined> {
     const connection = await db.connect();
     try {
