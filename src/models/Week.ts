@@ -70,7 +70,7 @@ export class Week {
     const connection = await db.connect();
     try {
       const week = await connection.oneOrNone(
-        `SELECT week.nec_to_distribute as week_nec, week.id as week_id, * FROM week
+        `SELECT week.nec_to_distribute as week_nec, week.id as week_id, p.nec_to_distribute as period_nec, * FROM week
         JOIN period as p ON week.fk_period_id = p.id 
         WHERE start_date >= $1 
         ORDER BY start_date ASC 
