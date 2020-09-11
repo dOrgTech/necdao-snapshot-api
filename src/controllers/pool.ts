@@ -4,7 +4,7 @@ import { GET_POOL_DATA, GET_BPT_HOLDERS } from "../graphql/queries";
 import { Period } from "../models/Period";
 import { Week } from "../models/Week";
 import dayjs from "dayjs";
-import { actualWeekNumber } from "../utils/day";
+import { actualWeekNumber, getCurrentPeriodId, todayTimestamp } from "../utils/day";
 import { Reward } from "../models/Reward";
 
 const router = Router();
@@ -38,7 +38,8 @@ export const calculateAPY = async (_: Request, response: Response) => {
         return prev + Number(current.balance);
       }, 0);
 
-    const nextPeriod = await Reward.getNextPeriodId()
+    const currentPeriodId = await getCurrentPeriodId()
+    const nextPeriod = await Period.getNextPeriodId(todayTimestamp(), currentPeriodId.toString())
 
     if(!nextPeriod) {
       response

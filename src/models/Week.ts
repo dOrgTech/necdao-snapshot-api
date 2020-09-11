@@ -8,6 +8,7 @@ export interface WeekType {
   closed: boolean
   nec_to_distribute: number
   start_date: string
+  end_date: string
   week_nec?: number
   week_id?: number
 }
@@ -48,11 +49,26 @@ export class Week {
     }
   }
 
+  public static async getAllWeeks(): Promise<WeekType[] | undefined> {
+    const connection = await db.connect();
+    try {
+      const weeks = await connection.manyOrNone(
+        `SELECT * from week`
+      );
+      return weeks;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
   public static async getLastWeek(): Promise<WeekType | undefined> {
     const connection = await db.connect();
     try {
       const week = await connection.oneOrNone(
-        `SELECT week.nec_to_distribute as week_nec, p.id as period_id, week.start_date FROM week
+        `SELECT week.nec_to_distribute as week_nec, p.id as period_id, week.start_date, end_date FROM week
         JOIN period as p ON week.fk_period_id = p.id 
         ORDER BY start_date DESC 
         LIMIT 1`
@@ -74,6 +90,25 @@ export class Week {
         JOIN period as p ON week.fk_period_id = p.id 
         WHERE extract(week from start_date::date) = $1`,
         [currentDate]
+      );
+      return week;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
+  public static async getCurrentOrNext(): Promise<WeekType | undefined> {
+    const connection = await db.connect();
+    try {
+      const week = await connection.oneOrNone(
+        `SELECT week.nec_to_distribute as week_nec, week.id as week_id, p.nec_to_distribute as period_nec, * FROM week
+        JOIN period as p ON week.fk_period_id = p.id 
+        WHERE week.closed = false
+        ORDER BY start_date ASC
+        LIMIT 1`
       );
       return week;
     } catch (error) {

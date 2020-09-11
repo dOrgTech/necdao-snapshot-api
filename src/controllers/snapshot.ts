@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 
-import dayjs, { actualWeekNumber } from "../utils/day";
+import dayjs, { actualWeekNumber, getCurrentWeek } from "../utils/day";
 import { takeSnapshot } from "../services/snapshot";
 import { tokenVerify } from "../middlewares/tokenVerify";
 import { Week } from "../models";
@@ -29,12 +29,28 @@ const takeSnapshotNow = async (
 
 export const getCurrentSnapshot = async (_: Request, response: Response) => {
   try {
-    const currentWeek = await Week.getCurrent(actualWeekNumber);
-    const snapshotTaken = currentWeek && currentWeek.snapshot_date;
-    const formattedSnapshot = snapshotTaken && dayjs(snapshotTaken).format();
+    const currentWeek = await getCurrentWeek();
 
-    const snapshotDate = formattedSnapshot ? formattedSnapshot : null;
-    response.status(200).json({ snapshotDate });
+    if (!currentWeek) {
+      response.status(404).json({
+        error: true,
+        message: "No current week/period",
+      });
+
+      return;
+    }
+    const snapshotTaken = currentWeek.snapshot_date;
+
+    if(!snapshotTaken) {
+      response.status(404).json({
+        error: true,
+        message: "No current snapshot",
+      });
+
+      return;
+    }
+    const formattedSnapshot = dayjs(snapshotTaken).format();
+    response.status(200).json({ formattedSnapshot });
   } catch (error) {
     console.log("Error ", error);
     response.status(500).send({ error: true  });

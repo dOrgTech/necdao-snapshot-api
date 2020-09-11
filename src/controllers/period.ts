@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 
-import dayjs, { actualWeekNumber } from "../utils/day";
+import dayjs, { actualWeekNumber, getCurrentPeriodId, getCurrentWeek, todayTimestamp } from "../utils/day";
 import { Period } from "../models";
 import { Week } from "../models";
 
@@ -10,27 +10,38 @@ export const schedulePeriod = async (request: Request, response: Response) => {
   const { necPerWeek, start_date } = request.body;
 
   try {
-    let parsedStartDate = dayjs(start_date);
+    let parsedStartDate = dayjs.utc(start_date);
 
     const totalNec = (necPerWeek as number[]).reduce((prev, current) => {
       return prev + current;
     }, 0);
 
     const lastWeek = await Week.getLastWeek();
-    const lastWeekDate = lastWeek && dayjs.utc(lastWeek?.start_date);
+    const lastWeekEndDate = lastWeek && dayjs.utc(lastWeek.end_date);
 
     const newStartDateIsBeforeLastWeek =
-      lastWeekDate &&
-      parsedStartDate.isBefore(lastWeekDate.endOf("week").endOf("day"));
+      lastWeekEndDate && parsedStartDate.isBefore(lastWeekEndDate);
     if (newStartDateIsBeforeLastWeek) {
       return response.status(422).json({
         error: "Period already on that date",
       });
+
+      return;
     }
 
     const weekData = necPerWeek.map((nec: number) => {
-      const week = { startDate: parsedStartDate.startOf("week").format(), nec };
-      parsedStartDate = parsedStartDate.add(1, "week");
+      const start = parsedStartDate.clone();
+      let end;
+
+      if (process.env.DEVELOPMENT === "true") {
+        end = parsedStartDate.add(1, "minute");
+      } else {
+        end = parsedStartDate.add(1, "week");
+      }
+
+      parsedStartDate = end.clone().add(1, "second");
+
+      const week = { startDate: start.format(), endDate: end.format(), nec };
       return week;
     });
 
@@ -38,32 +49,60 @@ export const schedulePeriod = async (request: Request, response: Response) => {
     response.send({ status: 200 });
   } catch (error) {
     console.log("Error ", error);
-    response.status(500).send({ error: true  });
+    response.status(500).send({ error: true });
   }
 };
 
-export const getLastPeriodEndDate = async (_: Request, response: Response) => {
+interface PeriodDates {
+  startDate: string
+  endDate: string
+}
+
+interface PeriodsDates {
+  current?: PeriodDates
+  next?: PeriodDates
+  last?: PeriodDates
+}
+
+export const getCurrentPeriodDates = async (
+  _: Request,
+  response: Response
+) => {
   try {
-    const currentWeek = await Week.getCurrent(actualWeekNumber);
-    const periodId = currentWeek && currentWeek.fk_period_id;
-    const lastWeekFromPeriod = periodId && (await Week.getLastWeekByPeriod(periodId));
+    const currentPeriodId = await getCurrentPeriodId()
+    let result: PeriodsDates = {}
 
-    const lastWeekStartDate = lastWeekFromPeriod && dayjs.utc(lastWeekFromPeriod.start_date);
-    let currentPeriodEndDate: string | undefined | null | 0 =
-      lastWeekStartDate &&
-      lastWeekStartDate.endOf("week").endOf("day").format();
+    if(currentPeriodId) {
+      const currentPeriodDates = await Period.getDates(currentPeriodId.toString())
+      result.current = currentPeriodDates
+    }
 
-    currentPeriodEndDate = currentPeriodEndDate ? currentPeriodEndDate : null;
-    response.status(200).json({
-      currentPeriodEndDate,
-    });
+    const nextPeriod = await Period.getNextPeriodId(todayTimestamp(), currentPeriodId.toString())
+    const nextPeriodId = nextPeriod && nextPeriod.id
+    
+    if(nextPeriodId) {
+      const nextPeriodDates = await Period.getDates(nextPeriodId.toString())
+      result.next = nextPeriodDates
+    }
+
+    const lastPeriod = await Period.getLastPeriodId(todayTimestamp(), currentPeriodId.toString())
+    const lastPeriodId = lastPeriod && lastPeriod.id
+
+    if(lastPeriodId) {
+      const lastPeriodDates = await Period.getDates(lastPeriodId.toString())
+      result.last = lastPeriodDates
+    }
+
+    console.log(currentPeriodId, nextPeriodId, lastPeriodId)
+
+    response.status(200).json(result);
   } catch (error) {
     console.log("Error ", error);
-    response.status(500).send({ error: true  });
+    response.status(500).send({ error: true });
   }
 };
 
-router.get("/period/last", getLastPeriodEndDate);
+router.get("/period/dates", getCurrentPeriodDates);
 router.post("/period", schedulePeriod);
 
 export default router;

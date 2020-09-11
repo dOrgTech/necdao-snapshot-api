@@ -1,4 +1,4 @@
-import { actualWeekNumber, today } from "../utils/day";
+import { actualWeekNumber, getCurrentWeek, today } from "../utils/day";
 import { GraphQLClient } from "../graphql/client";
 import { GET_BPT_HOLDERS } from "../graphql/queries";
 
@@ -35,9 +35,9 @@ export const takeSnapshot = async (): Promise<boolean> => {
   });
 
   const shares = getProrataShares(data.poolShares);
-  const week = await Week.getCurrent(actualWeekNumber);
+  const week = await getCurrentWeek();
   if (week && !week.snapshot_date) {
-    const distribution = week!.week_nec as number;
+    const distribution = week!.nec_to_distribute as number;
     const paramsInfo = shares.map((share) => {
       const { address, balance, prorataPercentage } = share;
       return {
@@ -46,7 +46,7 @@ export const takeSnapshot = async (): Promise<boolean> => {
         nec_earned: distribution * (prorataPercentage / 100),
       };
     });
-    await Reward.insertAllAddresses(week!.week_id as number, paramsInfo);
+    await Reward.insertAllAddresses(week!.id as number, paramsInfo);
     return true;
   }
 
@@ -55,9 +55,14 @@ export const takeSnapshot = async (): Promise<boolean> => {
 
 export const publishWeek = async (): Promise<boolean> => {
   try {
-    const week = await Week.getCurrent(actualWeekNumber);
-    if (!(week?.publish_date && week!.closed)) {
-      await Week.updatePublishDate(week!.week_id as number, today);
+    const week = await getCurrentWeek();
+
+    if(!week) {
+      return false
+    }
+
+    if (!(week.publish_date && week.closed)) {
+      await Week.updatePublishDate(week!.id as number, today);
       return true;
     }
     return false;

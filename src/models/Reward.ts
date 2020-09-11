@@ -65,27 +65,6 @@ export class Reward {
     }
   }
 
-  public static async getNextPeriodId() {
-    const connection = await db.connect()
-    try {
-      const period = await connection.oneOrNone(
-        `SELECT period.id, week.start_date 
-        FROM period 
-        JOIN week ON week.fk_period_id = period.id 
-        WHERE week.closed = false
-        ORDER BY start_date ASC
-        LIMIT 1`
-      )
-
-      return period
-    } catch (error) {
-      console.log("Error ", error)
-      return undefined
-    } finally {
-      connection.done()
-    }
-  }
-
   public static async getRemainingAndTotalNecByPeriod(periodId: string): Promise<{remaining_nec: number, total_nec: number} | undefined> {
     const connection = await db.connect();
     try {
