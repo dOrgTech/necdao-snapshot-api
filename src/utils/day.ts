@@ -7,6 +7,6 @@ dayjs.extend(weekOfYear);
 dayjs.extend(utc);
 
 export default dayjs;
-export const today = dayjs().utc().format("YYYY-MM-DD");
-export const actualWeekNumber = dayjs().week();
+export const today = () => dayjs().utc().format("YYYY-MM-DD");
+export const actualWeekNumber = () => dayjs().week();
 

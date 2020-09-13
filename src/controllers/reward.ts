@@ -22,7 +22,7 @@ export const getAllRewards = async (_: Request, response: Response) => {
 export const getRewardsByAddress = async (request: Request, response: Response) => {
   const { address } = request.params
   try {
-    const currentWeek = await Week.getCurrent(actualWeekNumber);
+    const currentWeek = await Week.getCurrent(actualWeekNumber());
     const periodId = currentWeek && currentWeek!.fk_period_id.toString()
     const rewards = periodId && await Reward.getAllByAddress(address, periodId) as any
     const weekIds = periodId && await Week.getAllWeekIdsByPeriod(periodId) as { id: number, fk_period_id: number }[]

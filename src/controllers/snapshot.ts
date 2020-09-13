@@ -68,7 +68,7 @@ const scheduleSnapshots = async (req: Request, res: Response, next: NextFunction
 
 export const getCurrentSnapshot = async (_: Request, response: Response) => {
   try {
-    const currentWeek = await Week.getCurrent(actualWeekNumber);
+    const currentWeek = await Week.getCurrent(actualWeekNumber());
     const snapshotTaken = currentWeek && currentWeek.snapshot_date
     const formattedSnapshot = snapshotTaken && dayjs(snapshotTaken).format()
 

@@ -44,7 +44,7 @@ export const schedulePeriod = async (request: Request, response: Response) => {
 
 export const getLastPeriodEndDate = async (_: Request, response: Response) => {
   try {
-    const currentWeek = await Week.getCurrent(actualWeekNumber)
+    const currentWeek = await Week.getCurrent(actualWeekNumber())
     const periodId = currentWeek && currentWeek.fk_period_id
     const lastWeekFromPeriod = periodId && await Week.getLastWeekByPeriod(periodId)
 

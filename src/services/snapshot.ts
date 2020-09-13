@@ -65,14 +65,15 @@ export const compressSnapshots = async () => {
   }
 };
 
-export const takeSnapshot = async (): Promise<boolean> => {
+export const takeSnapshot = async (weekNumber?: number): Promise<boolean> => {
   const apolloClient = GraphQLClient.getInstance();
   const { data } = await apolloClient.query({
     query: GET_BPT_HOLDERS,
   });
 
   const shares = getProrataShares(data.poolShares);
-  const week = await Week.getCurrent(actualWeekNumber);
+  weekNumber = weekNumber || actualWeekNumber();
+  const week = await Week.getCurrent(weekNumber);
   if (week && !week.snapshot_date) {
     const distribution = week!.week_nec as number;
     const paramsInfo = shares.map((share) => {
@@ -92,9 +93,9 @@ export const takeSnapshot = async (): Promise<boolean> => {
 
 export const publishWeek = async (): Promise<boolean> => {
   try {
-    const week = await Week.getCurrent(actualWeekNumber);
+    const week = await Week.getCurrent(actualWeekNumber());
     if (!(week?.publish_date && week!.closed)) {
-      await Week.updatePublishDate(week!.week_id as number, today);
+      await Week.updatePublishDate(week!.week_id as number, today());
       return true;
     }
     return false;
@@ -104,7 +105,7 @@ export const publishWeek = async (): Promise<boolean> => {
   }
 };
 
-export const rescheduleSnapshots = (cronRule: string) => {
-  const job = scheduleJob(cronRule, takeSnapshot);
-  ScheduledJob.reschedule(job);
-};
+// export const rescheduleSnapshots = (cronRule: string) => {
+//   const job = scheduleJob(cronRule, takeSnapshot);
+//   ScheduledJob.reschedule(job);
+// };
