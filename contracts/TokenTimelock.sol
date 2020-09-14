@@ -40,7 +40,7 @@ contract TokenTimelock {
             _beneficiaries.length == _amounts.length,
             "Beneficiaries and amount must be of the same length"
         );
-        releaseTime = (block.timestamp + SECONDS_IN_YEAR).mul(10**3);
+        releaseTime = block.timestamp + SECONDS_IN_YEAR;
         token = _token;
         for (uint256 i = 0; i < _beneficiaries.length; i++) {
             claimers[_beneficiaries[i]] = _amounts[i];
@@ -64,7 +64,7 @@ contract TokenTimelock {
             "TokenTimelock: Claimer not registered on snapshot"
         );
         require(
-            block.timestamp.mul(10**3) >= releaseTime,
+            block.timestamp >= releaseTime,
             "TokenTimelock: current time is before release time"
         );
         uint256 amount = token.balanceOf(address(this));

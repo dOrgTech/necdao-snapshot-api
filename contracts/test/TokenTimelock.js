@@ -26,6 +26,9 @@ contract("TokenTimelock", async (accounts) => {
   it("Attributes are correct", async () => {
     const tokenToLock = await tokenTimeLock.token();
     const releaseTime = await tokenTimeLock.releaseTime();
+    // We need to convert to milliseconds because solidity works in seconds but javascript works in ms
+    const releaseTimeInMs = releaseTime.valueOf().toNumber() * 10 ** 3
+    const yearFromNowInMs = Date.now() + 31556952 * 10 ** 3;
     assert.equal(
       tokenToLock.valueOf(),
       token.address,
@@ -33,13 +36,12 @@ contract("TokenTimelock", async (accounts) => {
     );
     assert.isBelow(
       Date.now(),
-      releaseTime.valueOf().toNumber(),
+      releaseTimeInMs,
       "Release time is higher than now"
     );
-    const yearFromNow = Date.now() + 31556952000;
     assert.isBelow(
       releaseTime.valueOf().toNumber(),
-      yearFromNow,
+      yearFromNowInMs,
       "Release time is less that a year from now"
     );
   });
