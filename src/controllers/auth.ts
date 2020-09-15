@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { authenticate } from "passport";
 import { sign, Secret } from "jsonwebtoken";
 
-import { User, UserType } from "../models/User";
+import { User, UserType } from "../models";
 
 const router = Router();
 
@@ -32,7 +32,7 @@ export const register = async (request: Request, response: Response) => {
     }
   } catch (error) {
     console.log("Error ", error);
-    response.send({ status: 500 });
+    response.status(500).send({ error: true  });
   }
 };
 

@@ -1,17 +1,9 @@
-import { actualWeekNumber, today } from "../utils/day";
+import dayjs, { actualWeekNumber, getCurrentWeek, today } from "../utils/day";
 import { GraphQLClient } from "../graphql/client";
 import { GET_BPT_HOLDERS } from "../graphql/queries";
-import { writeFileSync, existsSync, mkdirSync } from "fs";
-import compressing from "compressing";
-import {
-  SNAPSHOTS_DIR,
-  COMPRESSED_DIR,
-  COMPRESSED_FILENAME,
-} from "../utils/constants";
-import { ScheduledJob } from "../utils/scheduler";
-import { scheduleJob } from "node-schedule";
-import { Week } from "../models/Week";
-import { Reward } from "../models/Reward";
+
+import { Week, WeekType } from "../models";
+import { Reward } from "../models";
 
 interface PoolShares {
   userAddress: {
@@ -36,46 +28,23 @@ const getProrataShares = (poolshares: PoolShares[]) => {
   });
 };
 
-const saveSnapshotToFolder = (name: string, csv: string) => {
-  try {
-    if (!existsSync(SNAPSHOTS_DIR)) {
-      mkdirSync(SNAPSHOTS_DIR);
-    }
-    writeFileSync(`${SNAPSHOTS_DIR}/${name}-${Date.now()}.csv`, csv);
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-export const compressSnapshots = async () => {
-  try {
-    if (!existsSync(SNAPSHOTS_DIR)) {
-      mkdirSync(SNAPSHOTS_DIR);
-    }
-    if (!existsSync(COMPRESSED_DIR)) {
-      mkdirSync(COMPRESSED_DIR);
-    }
-    await compressing.zip.compressDir(
-      `${SNAPSHOTS_DIR}/`,
-      `${COMPRESSED_DIR}/${COMPRESSED_FILENAME}.zip`
-    );
-    return `${COMPRESSED_DIR}/${COMPRESSED_FILENAME}.zip`;
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-export const takeSnapshot = async (weekNumber?: number): Promise<boolean> => {
+export const takeSnapshot = async (id?: string): Promise<boolean> => {
   const apolloClient = GraphQLClient.getInstance();
   const { data } = await apolloClient.query({
     query: GET_BPT_HOLDERS,
   });
 
   const shares = getProrataShares(data.poolShares);
-  weekNumber = weekNumber || actualWeekNumber();
-  const week = await Week.getCurrent(weekNumber);
-  if (week && !week.snapshot_date) {
-    const distribution = week!.week_nec as number;
+  const week = id ? await Week.getWeekById(id) : await getCurrentWeek();
+
+  if (!week) {
+    return false;
+  }
+
+  const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc());
+
+  if (!week.snapshot_date && !weekIsFuture) {
+    const distribution = week!.nec_to_distribute as number;
     const paramsInfo = shares.map((share) => {
       const { address, balance, prorataPercentage } = share;
       return {
@@ -84,28 +53,35 @@ export const takeSnapshot = async (weekNumber?: number): Promise<boolean> => {
         nec_earned: distribution * (prorataPercentage / 100),
       };
     });
-    await Reward.insertAllAddresses(week!.week_id as number, paramsInfo);
+    await Reward.insertAllAddresses(week!.id as number, paramsInfo);
     return true;
   }
 
   return false;
 };
 
-export const publishWeek = async (): Promise<boolean> => {
+export const publishWeek = async (
+  id?: string
+): Promise<undefined | WeekType> => {
   try {
-    const week = await Week.getCurrent(actualWeekNumber());
-    if (!(week?.publish_date && week!.closed)) {
-      await Week.updatePublishDate(week!.week_id as number, today());
-      return true;
+    const week = id ? await Week.getWeekById(id) : await getCurrentWeek();
+    if (!week) {
+      return undefined;
     }
-    return false;
+
+    if (!week.snapshot_date) {
+      await takeSnapshot(id);
+    }
+
+    const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc());
+
+    if (!(week.publish_date && week.closed && weekIsFuture)) {
+      await Week.updatePublishDate(week!.id as number, today());
+      return week;
+    }
+    return undefined;
   } catch (e) {
     console.log("Error publishing error ", e);
-    return false;
+    return undefined;
   }
 };
-
-// export const rescheduleSnapshots = (cronRule: string) => {
-//   const job = scheduleJob(cronRule, takeSnapshot);
-//   ScheduledJob.reschedule(job);
-// };

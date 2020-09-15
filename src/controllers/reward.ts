@@ -1,53 +1,102 @@
 import { Router, Request, Response } from "express";
-import { authenticate } from "passport";
-import { sign, Secret } from "jsonwebtoken";
 
-import { actualWeekNumber } from "../utils/day";
-import { Period, PeriodType } from "../models/Period";
-import { Reward } from "../models/Reward";
-import { Week } from "../models/Week";
+import { actualWeekNumber, getCurrentPeriodId, getCurrentWeek, todayTimestamp } from "../utils/day";
+import { Period, Reward } from "../models";
+import { Week } from "../models";
 
 const router = Router();
 
 export const getAllRewards = async (_: Request, response: Response) => {
   try {
     let rewards = await Reward.getAll();
-    response.status(200).json(rewards)
+    response.status(200).json(rewards);
   } catch (error) {
     console.log("Error ", error);
-    response.send({ status: 500 });
+    response.status(500).send({ error: true });
   }
 };
 
-export const getRewardsByAddress = async (request: Request, response: Response) => {
-  const { address } = request.params
+export const getRewardsByAddress = async (
+  request: Request,
+  response: Response
+) => {
+  const { address } = request.params;
   try {
-    const currentWeek = await Week.getCurrent(actualWeekNumber());
-    const periodId = currentWeek && currentWeek!.fk_period_id.toString()
-    const rewards = periodId && await Reward.getAllByAddress(address, periodId) as any
-    const weekIds = periodId && await Week.getAllWeekIdsByPeriod(periodId) as { id: number, fk_period_id: number }[]
-    const formattedWeekIds = weekIds && weekIds.map(w => w.id)
-    let filterSnapshots = formattedWeekIds && rewards && rewards.map((rewardRow: any) => {
-      if (rewardRow.fk_period_id == periodId) {
-         if(!rewardRow.closed) {
-          return { ...rewardRow, snapshot_date: null, nec_earned: null, bpt_balance: null }
-        }
-        return rewardRow
-      }
-    }).filter((snapshot: any) => snapshot)
-      
-    if(!filterSnapshots) {
-      throw new Error('No filtered snapshots')
+    const currentWeek = await getCurrentWeek();
+
+    if (!currentWeek) {
+      response.status(404).json({
+        error: true,
+        message: "No current week/period",
+      });
+
+      return;
     }
 
-    response.status(200).json(filterSnapshots)
+    const periodId = currentWeek.fk_period_id.toString();
+    const rewards = await Reward.getAllByAddress(address) as any;
+    const weekIds = (await Week.getAllWeekIdsByPeriod(periodId)) as {
+        id: number;
+        fk_period_id: number;
+      }[];
+    const formattedWeekIds = weekIds && weekIds.map((w) => w.id);
+    let filterSnapshots =
+      formattedWeekIds &&
+      rewards &&
+      rewards
+        .map((rewardRow: any) => {
+          if (rewardRow.fk_period_id == periodId) {
+            if (!rewardRow.closed) {
+              return {
+                ...rewardRow,
+                snapshot_date: null,
+                nec_earned: null,
+                bpt_balance: null,
+              };
+            }
+            return rewardRow;
+          }
+        })
+        .filter((snapshot: any) => snapshot);
+
+    if (!filterSnapshots) {
+      response.status(404).json({
+        error: true,
+        message: "No filtered snapshots",
+      });
+
+      return;
+    }
+
+    response.status(200).json(filterSnapshots);
   } catch (error) {
     console.log("Error ", error);
-    response.send({ status: 500 });
+    response.status(500).send({ error: true });
   }
-}
+};
+
+export const getRemainingAndTotalRewards = async (
+  _: Request,
+  response: Response
+) => {
+  try {
+    const necResults = await Week.getRemainingAndTotalNec()
+
+    if (!necResults) {
+      throw new Error(
+        "Error while retrieving remaining and total period NEC results"
+      );
+    }
+
+    response.status(200).json(necResults);
+  } catch (error) {
+    console.log("Error ", error);
+    response.status(500).send({ error: true });
+  }
+};
 
 router.get("/reward/all", getAllRewards);
-router.get("/reward/address/:address", getRewardsByAddress)
+router.get("/reward", getRemainingAndTotalRewards);
+router.get("/reward/address/:address", getRewardsByAddress);
 
 export default router;
