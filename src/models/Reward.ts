@@ -9,13 +9,12 @@ export interface RewardType {
 }
 
 export class Reward {
-  public static async getAllFromWeek(weekId: number): Promise<RewardType[] | undefined> {
+  public static async getAllFromWeek(weekId: string): Promise<RewardType[] | undefined> {
     const connection = await db.connect();
     try {
       const rewards = await connection.manyOrNone(
-        `SELECT * FROM reward 
-         WHERE fk_week_id = $1 
-         JOIN week ON reward.fk_week_id = week.id`,
+        `SELECT * FROM reward JOIN week on reward.fk_week_id = week.id
+         WHERE fk_week_id = $1`,
         [weekId]
       );
       return rewards;
@@ -65,15 +64,14 @@ export class Reward {
     }
   }
 
-  public static async getRemainingAndTotalNecByPeriod(periodId: string): Promise<{remaining_nec: number, total_nec: number} | undefined> {
+  public static async getRemainingAndTotalNecByPeriod(): Promise<{remaining_nec: number, total_nec: number} | undefined> {
     const connection = await db.connect();
     try {
       const rewards = await connection.oneOrNone(
         `SELECT SUM(week.nec_to_distribute) AS remaining_nec,
         (SELECT period.nec_to_distribute FROM period WHERE period.id = $1) AS total_nec
         FROM week 
-        WHERE week.closed = false`,
-         [periodId]
+        WHERE week.closed = false`
       );
       return rewards;
     } catch (error) {
@@ -84,15 +82,12 @@ export class Reward {
     }
   }
 
-  public static async getAllByAddress(address: string, periodId: string): Promise<RewardType[] | undefined> {
+  public static async getAllByAddress(address: string): Promise<RewardType[] | undefined> {
     const connection = await db.connect();
     try {
       const rewards = await connection.manyOrNone(
-        `SELECT ROW_NUMBER() OVER() as week_number, week.nec_to_distribute as week_nec, week.id as week_id, * FROM reward
-         RIGHT JOIN week ON reward.fk_week_id = week.id
-         JOIN period ON week.fk_period_id = period.id
-         WHERE address = $1 OR address IS NULL AND fk_period_id = $2`,
-        [address, periodId]
+        `SELECT * FROM reward WHERE address = $1`,
+        [address]
       );
       return rewards;
     } catch (error) {

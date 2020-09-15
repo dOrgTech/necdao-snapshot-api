@@ -38,19 +38,9 @@ export const calculateAPY = async (_: Request, response: Response) => {
         return prev + Number(current.balance);
       }, 0);
 
-    const currentPeriodId = await getCurrentPeriodId()
-    const nextPeriod = await Period.getNextPeriodId(todayTimestamp(), currentPeriodId.toString())
+    const week = await Week.getThisOrLastWeekNec(todayTimestamp())
 
-    if(!nextPeriod) {
-      response
-        .status(200)
-        .json({ necPrice })
-      return
-    }
-
-    const nextWeek = await Week.getNextWeekByPeriod(nextPeriod.id)
-
-    const currentNecToDistribute = nextWeek ? Number(nextWeek.period_nec) : 0;
+    const currentNecToDistribute = week ? Number(week.nec_to_distribute) : 0;
 
     const bptPrice = liquidity / bptBalanceSum;
 
@@ -64,11 +54,8 @@ export const calculateAPY = async (_: Request, response: Response) => {
       response
         .status(200)
         .json({
-          totalBpt: bptBalanceSum,
-          bptPrice,
           apy,
           necPrice,
-          necToDistributeInCurrentPeriod: currentNecToDistribute,
         });
     } else {
       throw new Error("Error calculating balances");

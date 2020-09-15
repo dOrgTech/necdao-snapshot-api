@@ -1,4 +1,4 @@
-import { actualWeekNumber, getCurrentWeek, today } from "../utils/day";
+import dayjs, { actualWeekNumber, getCurrentWeek, today } from "../utils/day";
 import { GraphQLClient } from "../graphql/client";
 import { GET_BPT_HOLDERS } from "../graphql/queries";
 
@@ -28,15 +28,22 @@ const getProrataShares = (poolshares: PoolShares[]) => {
   });
 };
 
-export const takeSnapshot = async (): Promise<boolean> => {
+export const takeSnapshot = async (id?: string): Promise<boolean> => {
   const apolloClient = GraphQLClient.getInstance();
   const { data } = await apolloClient.query({
     query: GET_BPT_HOLDERS,
   });
 
   const shares = getProrataShares(data.poolShares);
-  const week = await getCurrentWeek();
-  if (week && !week.snapshot_date) {
+  const week = id? await Week.getWeekById(id): await getCurrentWeek()
+
+  if(!week) {
+    return false
+  }
+
+  const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc())
+
+  if (!week.snapshot_date && !weekIsFuture) {
     const distribution = week!.nec_to_distribute as number;
     const paramsInfo = shares.map((share) => {
       const { address, balance, prorataPercentage } = share;
@@ -53,15 +60,21 @@ export const takeSnapshot = async (): Promise<boolean> => {
   return false;
 };
 
-export const publishWeek = async (): Promise<boolean> => {
+export const publishWeek = async (id?: string): Promise<boolean> => {
   try {
-    const week = await getCurrentWeek();
+    const week = id? await Week.getWeekById(id): await getCurrentWeek()
 
     if(!week) {
       return false
     }
+    
+    if(!week.snapshot_date) {
+      await takeSnapshot(id)
+    }
 
-    if (!(week.publish_date && week.closed)) {
+    const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc())
+
+    if (!(week.publish_date && week.closed && weekIsFuture)) {
       await Week.updatePublishDate(week!.id as number, today);
       return true;
     }

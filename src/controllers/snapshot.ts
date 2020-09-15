@@ -1,23 +1,48 @@
 import { Router, Request, Response, NextFunction } from "express";
 
 import dayjs, { actualWeekNumber, getCurrentWeek } from "../utils/day";
-import { takeSnapshot } from "../services/snapshot";
+import { publishWeek, takeSnapshot } from "../services/snapshot";
 import { tokenVerify } from "../middlewares/tokenVerify";
-import { Week } from "../models";
+import { Reward, Week } from "../models";
+import { parse } from "json2csv";
 
 const router = Router();
 
 const takeSnapshotNow = async (
-  _: Request,
+  request: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const snapshotTaken = await takeSnapshot();
+
+    const { id } = request.params
+    const snapshotTaken = await takeSnapshot(id);
     if (!snapshotTaken) {
       res.send({
         status: 403,
         message: "Snapshot already taken this week",
+      });
+      return;
+    }
+    res.send({ status: 200 });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const publishResultsNow = async (
+  request: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+
+    const { id } = request.params
+    const published = await publishWeek(id);
+    if (!published) {
+      res.send({
+        status: 403,
+        message: "Results already published this week",
       });
       return;
     }
@@ -57,7 +82,36 @@ export const getCurrentSnapshot = async (_: Request, response: Response) => {
   }
 };
 
-router.post("/snapshot", /* tokenVerify, */ takeSnapshotNow);
+const getSnapshotCsv = async (
+  request: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+
+    const { id } = request.params
+    const snapshotData = await Reward.getAllFromWeek(id)
+
+    if(snapshotData) {
+      const csv = parse(snapshotData)
+      res.header('Content-Type', 'text/csv');
+      res.attachment(`snapshot.csv`);
+      res.send(csv)
+    } else {
+      res.send({
+        status: 404,
+        error: true,
+        message: "No rewards for this week yet",
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.post("/snapshot/take/:id", /* tokenVerify, */ takeSnapshotNow);
+router.post("/snapshot/publish/:id", /* tokenVerify, */ publishResultsNow);
 router.get("/snapshot/current", getCurrentSnapshot);
+router.get("/snapshot/csv/:id", getSnapshotCsv);
 
 export default router;

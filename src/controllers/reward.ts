@@ -34,7 +34,7 @@ export const getRewardsByAddress = async (
     }
 
     const periodId = currentWeek.fk_period_id.toString();
-    const rewards = await Reward.getAllByAddress(address, periodId) as any;
+    const rewards = await Reward.getAllByAddress(address) as any;
     const weekIds = (await Week.getAllWeekIdsByPeriod(periodId)) as {
         id: number;
         fk_period_id: number;
@@ -80,16 +80,7 @@ export const getRemainingAndTotalRewards = async (
   response: Response
 ) => {
   try {
-    const currentPeriodId = await getCurrentPeriodId()
-    const nextPeriod = await Period.getNextPeriodId(todayTimestamp(), currentPeriodId.toString())
-
-    if (!nextPeriod) {
-      response.status(404).json({ error: "There is no next period scheduled" });
-      return;
-    }
-
-    const periodId = nextPeriod.id;
-    const necResults = await Reward.getRemainingAndTotalNecByPeriod(periodId);
+    const necResults = await Week.getRemainingAndTotalNec()
 
     if (!necResults) {
       throw new Error(

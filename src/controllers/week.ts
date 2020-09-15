@@ -1,0 +1,58 @@
+import { Router, Request, Response } from "express";
+import { Reward, Week } from "../models";
+
+const router = Router();
+
+export const getAllWeeks = async (_: Request, response: Response) => {
+  try {
+    let rewards = await Week.getAllWeeks();
+    response.status(200).json(rewards);
+  } catch (error) {
+    console.log("Error ", error);
+    response.status(500).send({ error: true });
+  }
+};
+
+export const getAllWeeksAndRewards = async (
+  request: Request,
+  response: Response
+) => {
+  try {
+    const { address } = request.params;
+    const weeks = await Week.getAllWeeks() as any;
+    const rewards = await Reward.getAllByAddress(address) as any;
+
+    const result = weeks?.map((week: any) => {
+      const rewardThatWeek = rewards.find(
+        (reward: any) => reward.fk_week_id === week.id
+      );
+
+      if (!week.closed) {
+        week = {
+          ...week,
+          snapshot_date: null
+        }
+      } else {
+        if (rewardThatWeek) {
+          week = {
+            ...week,
+            address: rewardThatWeek.address,
+            bpt_balance: rewardThatWeek.bpt_balance,
+            nec_earned: rewardThatWeek.nec_earned,
+          };
+        }
+      }
+
+      return week;
+    });
+    response.status(200).json(result);
+  } catch (error) {
+    console.log("Error ", error);
+    response.status(500).send({ error: true });
+  }
+};
+
+router.get("/week/rewards/:address", getAllWeeksAndRewards);
+router.get("/week/all", getAllWeeks);
+
+export default router;

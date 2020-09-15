@@ -53,7 +53,8 @@ export class Week {
     const connection = await db.connect();
     try {
       const weeks = await connection.manyOrNone(
-        `SELECT * from week`
+        `SELECT ROW_NUMBER() OVER(ORDER BY start_date ASC) as week_number, * 
+        FROM week ORDER BY start_date ASC`
       );
       return weeks;
     } catch (error) {
@@ -209,6 +210,55 @@ export class Week {
         [weekId, publishDate]
       );
       return period;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
+  public static async getRemainingAndTotalNec(): Promise<WeekType | undefined> {
+    const connection = await db.connect();
+    try {
+      const period = await connection.oneOrNone(
+        `SELECT 
+        (SELECT SUM(nec_to_distribute) FROM week) as total_nec,
+        (SELECT SUM(nec_to_distribute) FROM week WHERE closed = false) as remaining_nec`,
+      );
+      return period;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
+  public static async getThisOrLastWeekNec(today: string): Promise<WeekType | undefined> {
+    const connection = await db.connect();
+    try {
+      const week = await connection.oneOrNone(
+        `SELECT * FROM week WHERE end_date >= $1 ORDER BY end_date ASC LIMIT 1`,
+        [today]
+      );
+      return week;
+    } catch (error) {
+      console.log("Error ", error);
+      return undefined;
+    } finally {
+      connection.done();
+    }
+  }
+
+  public static async getWeekById(id: string): Promise<WeekType | undefined> {
+    const connection = await db.connect();
+    try {
+      const week = await connection.oneOrNone(
+        `SELECT * FROM week WHERE id = $1`,
+        [id]
+      );
+      return week;
     } catch (error) {
       console.log("Error ", error);
       return undefined;

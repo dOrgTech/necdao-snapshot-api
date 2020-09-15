@@ -31,7 +31,7 @@ export const getCurrentWeek = async () => {
 }
 
 export const todayTimestamp = () => {
-  return dayjs().format('YYYY-MM-DD HH:MM:ssZ')
+  return dayjs().format('YYYY-MM-DD HH:mm:ssZ')
 }
 
 export const getCurrentPeriodId = async () => {
