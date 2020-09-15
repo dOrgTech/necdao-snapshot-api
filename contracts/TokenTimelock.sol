@@ -17,14 +17,13 @@ contract TokenTimelock {
 
     using SafeMath for uint256;
 
-    /// @notice One Gregorian calendar year, has 365.2425 days, or 31556952 seconds
-    uint256 private constant SECONDS_IN_YEAR = 31556952;
-
     // ERC20 basic token contract being held
     IERC20 public token;
 
     /// @notice Timestamp when token release is enabled
     uint256 public releaseTime;
+
+    address private owner;
 
     // snapshot beneficiaries of tokens after they are released
     mapping(address => uint256) public claimers;
@@ -33,15 +32,21 @@ contract TokenTimelock {
 
     constructor(
         IERC20 _token,
-        address[] memory _beneficiaries,
-        uint256[] memory _amounts
+        uint256 _timeLock
     ) public {
+        releaseTime = block.timestamp + _timeLock;
+        token = _token;
+        owner = msg.sender;
+    }
+
+    function addBeneficiaries(
+        address[] calldata _beneficiaries,
+        uint256[] calldata _amounts
+    ) external onlyOwner {
         require(
             _beneficiaries.length == _amounts.length,
             "Beneficiaries and amount must be of the same length"
         );
-        releaseTime = block.timestamp + SECONDS_IN_YEAR;
-        token = _token;
         for (uint256 i = 0; i < _beneficiaries.length; i++) {
             claimers[_beneficiaries[i]] = _amounts[i];
         }
@@ -54,11 +59,16 @@ contract TokenTimelock {
         return claimers[_claimer];
     }
 
-    /**
-     * @notice Transfers tokens held by timelock to beneficiary.
-     */
     function release() external virtual {
-        uint256 claimAmount = claimers[msg.sender];
+        _release(msg.sender);
+    }
+
+    function release(address claimer) external virtual {
+        _release(claimer);
+    }
+
+    function _release(address claimer) internal {
+        uint256 claimAmount = claimers[claimer];
         require(
             claimAmount > 0,
             "TokenTimelock: Claimer not registered on snapshot"
@@ -68,10 +78,21 @@ contract TokenTimelock {
             "TokenTimelock: current time is before release time"
         );
         uint256 amount = token.balanceOf(address(this));
-        require(amount > 0, "TokenTimelock: no tokens to release");
-        claimers[msg.sender] = 0;
-        token.safeTransfer(msg.sender, claimAmount);
+        require(
+            amount >= claimAmount,
+            "TokenTimelock: not enough tokens to release"
+        );
+        claimers[claimer] = 0;
+        token.safeTransfer(claimer, claimAmount);
 
-        emit RewardReleased(msg.sender, claimAmount);
+        emit RewardReleased(claimer, claimAmount);
+    }
+
+    modifier onlyOwner() {
+        require(
+            msg.sender == owner,
+            "OnlyOwner: Function only callable by owner"
+        );
+        _;
     }
 }
