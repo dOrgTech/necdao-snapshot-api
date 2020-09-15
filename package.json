@@ -40,12 +40,12 @@
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "pg-promise": "^10.6.1",
-    "typescript": "^3.9.7"
-  },
-  "devDependencies": {
+    "typescript": "^3.9.7",
     "@types/passport": "^1.0.4",
     "@types/passport-jwt": "^3.0.3",
-    "@types/passport-local": "^1.0.33",
+    "@types/passport-local": "^1.0.33"
+  },
+  "devDependencies": {
     "@types/supertest": "^2.0.10",
     "ganache-cli": "^6.9.1",
     "jest": "^26.2.2",
