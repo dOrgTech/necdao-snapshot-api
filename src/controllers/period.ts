@@ -41,7 +41,7 @@ export const schedulePeriod = async (request: Request, response: Response) => {
 
       parsedStartDate = end.clone().add(1, "second");
 
-      const week = { startDate: start.format(), endDate: end.format(), nec };
+      const week = { startDate: start.format('YYYY-MM-DDTHH:mm:ssZ'), endDate: end.format('YYYY-MM-DDTHH:mm:ssZ'), nec };
       return week;
     });
 

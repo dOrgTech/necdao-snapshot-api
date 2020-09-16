@@ -22,7 +22,7 @@ export const deployTimeLockingContract = async (week: WeekType) => {
     .send({ from });
   console.log("Contract deployed at address: " + contract.options.address);
 
-  const unlockDate = dayjs.utc().add(unlockTime, 'second').format('YYYY/MM/DD HH:mm:ss')
+  const unlockDate = dayjs.utc().add(unlockTime, 'second').format('YYYY-MM-DDTHH:mm:ssZ')
 
   await Week.addContractToWeek(week!.id.toString(), contract.options.address, unlockDate);
 
