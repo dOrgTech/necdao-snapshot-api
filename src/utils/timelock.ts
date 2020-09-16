@@ -42,7 +42,7 @@ export const deployTimeLockingContract = async (week: WeekType) => {
         claimersToAdd.push(claimers[i])
         amountsToAdd.push(amounts[i])
       }
-      await contract.methods.addBeneficiaries(claimersToAdd, amountsToAdd)
+      await contract.methods.addBeneficiaries(claimersToAdd, amountsToAdd).send({ from })
       prevLimit = limit
       let newLimit = limit + 500
       limit = newLimit > totalRewards ? totalRewards : limit == totalRewards ? limit + 1 : newLimit
