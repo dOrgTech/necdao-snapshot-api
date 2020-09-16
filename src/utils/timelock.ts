@@ -28,26 +28,31 @@ export const deployTimeLockingContract = async (week: WeekType) => {
 
   const rewards = await Reward.getAllFromWeek(week!.id.toString())
 
+  console.log('REWARDS: ',rewards)
   const claimers = rewards!.map((reward: any) => reward.address)
   const amounts = rewards!.map((reward: any) => reward.nec_earned * 1e18)
   const totalRewards = rewards!.length
 
-  if (totalRewards > 500) {
-    let prevLimit = 0
-    let limit = 499
-    while (limit < totalRewards) {
-      let claimersToAdd = []
-      let amountsToAdd = []
-      for (let i=prevLimit; i<limit; i++) {
-        claimersToAdd.push(claimers[i])
-        amountsToAdd.push(amounts[i])
+  try {
+    if (totalRewards > 500) {
+      let prevLimit = 0
+      let limit = 499
+      while (limit < totalRewards) {
+        let claimersToAdd = []
+        let amountsToAdd = []
+        for (let i=prevLimit; i<limit; i++) {
+          claimersToAdd.push(claimers[i])
+          amountsToAdd.push(amounts[i])
+        }
+        await contract.methods.addBeneficiaries(claimersToAdd, amountsToAdd).send({ from })
+        prevLimit = limit
+        let newLimit = limit + 500
+        limit = newLimit > totalRewards ? totalRewards : limit == totalRewards ? limit + 1 : newLimit
       }
-      await contract.methods.addBeneficiaries(claimersToAdd, amountsToAdd).send({ from })
-      prevLimit = limit
-      let newLimit = limit + 500
-      limit = newLimit > totalRewards ? totalRewards : limit == totalRewards ? limit + 1 : newLimit
+    } else {
+      await contract.methods.addBeneficiaries(claimers, amounts).send({ from })
     }
-  } else {
-    await contract.methods.addBeneficiaries(claimers, amounts).send({ from })
+  } catch(e) {
+    console.log('CONTRACT ERROR: ', e)
   }
 }

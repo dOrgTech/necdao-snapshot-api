@@ -58,6 +58,40 @@ const publishResultsNow = async (
   }
 };
 
+const redeployContract = async (
+  request: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+
+    const { id } = request.params
+    const published = await Week.getWeekById(id)
+
+    if (!published) {
+      res.send({
+        status: 400,
+        message: "No week found with this ID",
+      });
+      return;
+    }
+
+    if(!published.closed) {
+      res.send({
+        status: 400,
+        message: "This week has not tried to deploy the contract for the first time",
+      });
+      return;
+    }
+
+    await deployTimeLockingContract(published)
+    res.send({ status: 200 });
+  } catch (err) {
+    console.log(err.toString())
+    next(err);
+  }
+};
+
 export const getCurrentSnapshot = async (_: Request, response: Response) => {
   try {
     const currentWeek = await getCurrentWeek();
@@ -117,6 +151,7 @@ const getSnapshotCsv = async (
 
 router.post("/snapshot/take/:id", /* tokenVerify, */ takeSnapshotNow);
 router.post("/snapshot/publish/:id", /* tokenVerify, */ publishResultsNow);
+router.post("/snapshot/redeploy/:id", /* tokenVerify, */ redeployContract)
 router.get("/snapshot/current", getCurrentSnapshot);
 router.get("/snapshot/csv/:id", getSnapshotCsv);
 
