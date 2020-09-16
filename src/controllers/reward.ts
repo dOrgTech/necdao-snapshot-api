@@ -33,9 +33,8 @@ export const getRewardsByAddress = async (
       return;
     }
 
-    const periodId = currentWeek.fk_period_id.toString();
     const rewards = await Reward.getAllByAddress(address) as any;
-    const weekIds = (await Week.getAllWeekIdsByPeriod(periodId)) as {
+    const weekIds = (await Week.getAllWeeks()) as {
         id: number;
         fk_period_id: number;
       }[];
@@ -45,17 +44,15 @@ export const getRewardsByAddress = async (
       rewards &&
       rewards
         .map((rewardRow: any) => {
-          if (rewardRow.fk_period_id == periodId) {
-            if (!rewardRow.closed) {
-              return {
-                ...rewardRow,
-                snapshot_date: null,
-                nec_earned: null,
-                bpt_balance: null,
-              };
-            }
-            return rewardRow;
+          if (!rewardRow.closed) {
+            return {
+              ...rewardRow,
+              snapshot_date: null,
+              nec_earned: null,
+              bpt_balance: null,
+            };
           }
+          return rewardRow;
         })
         .filter((snapshot: any) => snapshot);
 
