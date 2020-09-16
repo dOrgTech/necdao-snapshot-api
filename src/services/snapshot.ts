@@ -2,7 +2,7 @@ import dayjs, { actualWeekNumber, getCurrentWeek, today } from "../utils/day";
 import { GraphQLClient } from "../graphql/client";
 import { GET_BPT_HOLDERS } from "../graphql/queries";
 
-import { Week } from "../models";
+import { Week, WeekType } from "../models";
 import { Reward } from "../models";
 
 interface PoolShares {
@@ -35,13 +35,13 @@ export const takeSnapshot = async (id?: string): Promise<boolean> => {
   });
 
   const shares = getProrataShares(data.poolShares);
-  const week = id? await Week.getWeekById(id): await getCurrentWeek()
+  const week = id ? await Week.getWeekById(id) : await getCurrentWeek();
 
-  if(!week) {
-    return false
+  if (!week) {
+    return false;
   }
 
-  const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc())
+  const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc());
 
   if (!week.snapshot_date && !weekIsFuture) {
     const distribution = week!.nec_to_distribute as number;
@@ -60,27 +60,28 @@ export const takeSnapshot = async (id?: string): Promise<boolean> => {
   return false;
 };
 
-export const publishWeek = async (id?: string): Promise<boolean> => {
+export const publishWeek = async (
+  id?: string
+): Promise<undefined | WeekType> => {
   try {
-    const week = id? await Week.getWeekById(id): await getCurrentWeek()
-
-    if(!week) {
-      return false
-    }
-    
-    if(!week.snapshot_date) {
-      await takeSnapshot(id)
+    const week = id ? await Week.getWeekById(id) : await getCurrentWeek();
+    if (!week) {
+      return undefined;
     }
 
-    const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc())
-
-    if (!(week.publish_date && week.closed && weekIsFuture)) {
-      await Week.updatePublishDate(week!.id as number, today);
-      return true;
+    if (!week.snapshot_date) {
+      await takeSnapshot(id);
     }
-    return false;
+
+    const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc());
+
+    if (!week.publish_date && !week.closed && !weekIsFuture) {
+      await Week.updatePublishDate(week!.id as number, today());
+      return week;
+    }
+    return undefined;
   } catch (e) {
     console.log("Error publishing error ", e);
-    return false;
+    return undefined;
   }
 };

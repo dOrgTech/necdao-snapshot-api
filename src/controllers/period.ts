@@ -22,7 +22,7 @@ export const schedulePeriod = async (request: Request, response: Response) => {
     const newStartDateIsBeforeLastWeek =
       lastWeekEndDate && parsedStartDate.isBefore(lastWeekEndDate);
     if (newStartDateIsBeforeLastWeek) {
-      return response.status(422).json({
+      return response.status(400).json({
         error: "Period already on that date",
       });
 

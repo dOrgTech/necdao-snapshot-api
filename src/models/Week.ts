@@ -266,4 +266,20 @@ export class Week {
       connection.done();
     }
   }
+
+  public static async addContractToWeek(id: string, address: string, unlock_date_unix: string): Promise<boolean> {
+    const connection = await db.connect();
+    try {
+      await connection.none(
+        `UPDATE week SET contract_address = $2, unlock_date = $3 WHERE id = $1`,
+        [id, address, unlock_date_unix]
+      );
+      return true;
+    } catch (error) {
+      console.log("Error ", error);
+      return false;
+    } finally {
+      connection.done();
+    }
+  }
 }

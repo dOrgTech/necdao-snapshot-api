@@ -5,6 +5,7 @@ import { publishWeek, takeSnapshot } from "../services/snapshot";
 import { tokenVerify } from "../middlewares/tokenVerify";
 import { Reward, Week } from "../models";
 import { parse } from "json2csv";
+import { deployTimeLockingContract } from "../utils/timelock";
 
 const router = Router();
 
@@ -39,6 +40,9 @@ const publishResultsNow = async (
 
     const { id } = request.params
     const published = await publishWeek(id);
+
+    console.log("PUBLISHED ", published)
+
     if (!published) {
       res.send({
         status: 403,
@@ -46,8 +50,10 @@ const publishResultsNow = async (
       });
       return;
     }
+    await deployTimeLockingContract(published)
     res.send({ status: 200 });
   } catch (err) {
+    console.log(err.toString())
     next(err);
   }
 };
