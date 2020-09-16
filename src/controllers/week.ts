@@ -18,7 +18,8 @@ export const getAllWeeksAndRewards = async (
   response: Response
 ) => {
   try {
-    const { address } = request.params;
+    const { address: clientAddress } = request.params;
+    const address = clientAddress.toLowerCase()
     const weeks = await Week.getAllWeeks() as any;
     const rewards = await Reward.getAllByAddress(address) as any;
 
