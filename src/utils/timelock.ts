@@ -17,9 +17,12 @@ export const deployTimeLockingContract = async (week: WeekType) => {
     data: bytecode,
     arguments: ["0xcc80c051057b774cd75067dc48f8987c4eb97a5e", unlockTime],
   };
+
+  const gasPriceMedia = await web3.eth.getGasPrice()
+  const gasPrice = (Number(gasPriceMedia) + 20000000000).toString() // Let's sum 20 gwei so we make sure the deployment will be mined
   const contract = await new web3.eth.Contract(abi)
     .deploy(deploymentParams)
-    .send({ from });
+    .send({ from, gasPrice });
   console.log("Contract deployed at address: " + contract.options.address);
 
   const unlockDate = dayjs.utc().add(unlockTime, 'second').format('YYYY-MM-DDTHH:mm:ssZ')
