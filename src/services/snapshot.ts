@@ -75,7 +75,7 @@ export const publishWeek = async (
 
     const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc());
 
-    if (!(week.publish_date && week.closed && weekIsFuture)) {
+    if (!week.publish_date && !week.closed && !weekIsFuture) {
       await Week.updatePublishDate(week!.id as number, today());
       return week;
     }

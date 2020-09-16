@@ -267,12 +267,12 @@ export class Week {
     }
   }
 
-  public static async addContractToWeek(id: string, address: string): Promise<boolean> {
+  public static async addContractToWeek(id: string, address: string, unlock_date_unix: string): Promise<boolean> {
     const connection = await db.connect();
     try {
       await connection.none(
-        `UPDATE week SET contract_address = $2 WHERE id = $1`,
-        [id, address]
+        `UPDATE week SET contract_address = $2, unlock_date = $3 WHERE id = $1`,
+        [id, address, unlock_date_unix]
       );
       return true;
     } catch (error) {
