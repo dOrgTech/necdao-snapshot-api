@@ -48,6 +48,6 @@ export const deployTimeLockingContract = async (week: WeekType) => {
       limit = newLimit > totalRewards ? totalRewards : limit == totalRewards ? limit + 1 : newLimit
     }
   } else {
-    await contract.methods.addBeneficiaries(claimers, amounts)
+    await contract.methods.addBeneficiaries(claimers, amounts).send({ from })
   }
 }
