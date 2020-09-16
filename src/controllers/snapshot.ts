@@ -5,7 +5,7 @@ import { publishWeek, takeSnapshot } from "../services/snapshot";
 import { tokenVerify } from "../middlewares/tokenVerify";
 import { Reward, Week } from "../models";
 import { parse } from "json2csv";
-import { deployTimeLockingContract } from "../utils/timelock";
+import { addBeneficiaries, deployTimeLockingContract } from "../utils/timelock";
 
 const router = Router();
 
@@ -92,6 +92,40 @@ const redeployContract = async (
   }
 };
 
+const reAddBeneficiaries = async (
+  request: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+
+    const { id } = request.params
+    const published = await Week.getWeekById(id)
+
+    if (!published) {
+      res.send({
+        status: 400,
+        message: "No week found with this ID",
+      });
+      return;
+    }
+
+    if(!published.closed || !published.contract_address) {
+      res.send({
+        status: 400,
+        message: "This week has no contract deployed",
+      });
+      return;
+    }
+
+    await addBeneficiaries(published)
+    res.send({ status: 200 });
+  } catch (err) {
+    console.log(err.toString())
+    next(err);
+  }
+};
+
 export const getCurrentSnapshot = async (_: Request, response: Response) => {
   try {
     const currentWeek = await getCurrentWeek();
@@ -152,6 +186,7 @@ const getSnapshotCsv = async (
 router.post("/snapshot/take/:id", /* tokenVerify, */ takeSnapshotNow);
 router.post("/snapshot/publish/:id", /* tokenVerify, */ publishResultsNow);
 router.post("/snapshot/redeploy/:id", /* tokenVerify, */ redeployContract)
+router.post("/snapshot/addBeneficiaries/:id", /* tokenVerify, */ reAddBeneficiaries)
 router.get("/snapshot/current", getCurrentSnapshot);
 router.get("/snapshot/csv/:id", getSnapshotCsv);
 

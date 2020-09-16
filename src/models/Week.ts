@@ -11,6 +11,7 @@ export interface WeekType {
   end_date: string
   week_nec?: number
   week_id?: number
+  contract_address?: string
 }
 
 export class Week {
