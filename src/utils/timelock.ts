@@ -17,15 +17,17 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
   const rewards = await Reward.getAllFromWeek(week!.id.toString());
 
   const claimers = rewards!.map((reward: any) => reward.address);
-  const amounts = rewards!.map((reward: any) => (reward.nec_earned * 1e18).toString());
+  const amounts = rewards!.map((reward: any) =>
+    (reward.nec_earned * 1e18).toString()
+  );
   const totalRewards = rewards!.length;
 
-  if(!week) {
-    throw new Error('No week found for addBeneficiaries')
+  if (!week) {
+    throw new Error("No week found for addBeneficiaries");
   }
 
-  if(!week.contract_address) {
-    throw new Error('Week has no deployed contract associated')
+  if (!week.contract_address) {
+    throw new Error("Week has no deployed contract associated");
   }
 
   const contractInstance = new web3.eth.Contract(abi, week.contract_address);
@@ -65,7 +67,7 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
   } catch (e) {
     console.log("Error adding beneficiaries: ", e);
   }
-}
+};
 
 export const deployTimeLockingContract = async (week: WeekType) => {
   const provider = new HDWalletProvider(
@@ -81,32 +83,25 @@ export const deployTimeLockingContract = async (week: WeekType) => {
 
   const gasPriceMedia = await web3.eth.getGasPrice();
   const gasPrice = (Number(gasPriceMedia) + 10000000000).toString(); // Let's sum 10 gwei so we make sure the deployment will be mined
-  new web3.eth.Contract(abi)
+  const contractInstance = await new web3.eth.Contract(abi)
     .deploy(deploymentParams)
-    .send({ from, gasPrice })
-    .on("confirmation", async (confirmationNumber: number, receipt: any) => {
-      if (confirmationNumber === 20) {
-        const { contractAddress } = receipt;
-        console.log("Contract deployed at address (check on 20 confirmations): " + contractAddress);
+    .send({ from, gasPrice });
 
-        const unlockDate = dayjs
-          .utc()
-          .add(unlockTime, "second")
-          .format("YYYY-MM-DDTHH:mm:ssZ");
-        await Week.addContractToWeek(
-          week!.id.toString(),
-          contractAddress,
-          unlockDate
-        );
+  console.log(
+    "Contract has been deployed at address (check on the resolve of the promise): ",
+    contractInstance.options.address
+  );
 
-        const refetchedWeek = await Week.getWeekById(week!.id.toString())
-        await addBeneficiaries(refetchedWeek)
-      }
-    })
-    .then((contractInstance) => {
-      console.log(
-        "Contract has been deployed at address (check on the resolve of the promise): ",
-        contractInstance.options.address
-      );
-    });
+  const unlockDate = dayjs
+    .utc()
+    .add(unlockTime, "second")
+    .format("YYYY-MM-DDTHH:mm:ssZ");
+  await Week.addContractToWeek(
+    week!.id.toString(),
+    contractInstance.options.address,
+    unlockDate
+  );
+
+  const refetchedWeek = await Week.getWeekById(week!.id.toString());
+  await addBeneficiaries(refetchedWeek);
 };
