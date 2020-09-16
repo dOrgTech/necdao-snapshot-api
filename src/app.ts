@@ -8,6 +8,7 @@ import {
 } from "passport";
 import "dotenv/config";
 import "node-fetch";
+import cors from 'cors';
 
 import { controllers } from "./controllers";
 import { ScheduledJob } from "./utils/scheduler";
@@ -31,7 +32,7 @@ const requestHeaders = (
   next();
 };
 
-const toUse = [express.json(), requestHeaders, initialize(), session()];
+const toUse = [express.json(), cors({ origin: '*' }), requestHeaders, initialize(), session()];
 
 ScheduledJob.getInstance();
 const toggleSerializeUser = (user: UserType, done: Function) =>
