@@ -44,11 +44,7 @@ export const calculateAPY = async (_: Request, response: Response) => {
 
     const bptPrice = liquidity / bptBalanceSum;
 
-    const apy =
-      Math.pow(
-        1 + (currentNecToDistribute * necPrice) / (bptBalanceSum * bptPrice) / 52,
-        52
-      ) - 1;
+    const apy = ((currentNecToDistribute * necPrice) / (bptBalanceSum * bptPrice)) * 52 * 100
 
     if (bptBalanceSum && liquidity) {
       response
