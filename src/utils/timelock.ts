@@ -12,7 +12,72 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
     `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
   );
   const web3 = new Web3(provider);
-  const from = (await web3.eth.getAccounts())[0]
+  const from = (await web3.eth.getAccounts())[0];
+
+  const rewards = await Reward.getAllFromWeek(week!.id.toString());
+
+  const claimers = rewards!.map((reward: any) => reward.address);
+  const amounts = rewards!.map((reward: any) => reward.nec_earned * 1e18);
+  const totalRewards = rewards!.length;
+
+  if(!week) {
+    throw new Error('No week found for addBeneficiaries')
+  }
+
+  if(!week.contract_address) {
+    throw new Error('Week has no deployed contract associated')
+  }
+
+  const contractInstance = new web3.eth.Contract(abi, week.contract_address);
+
+  console.log("Claimers ", claimers);
+  console.log("Amounts ", amounts);
+  console.log("Total rewards", totalRewards);
+  try {
+    if (totalRewards > 500) {
+      let prevLimit = 0;
+      let limit = 499;
+      while (limit < totalRewards) {
+        let claimersToAdd = [];
+        let amountsToAdd = [];
+        for (let i = prevLimit; i < limit; i++) {
+          claimersToAdd.push(claimers[i]);
+          amountsToAdd.push(amounts[i]);
+        }
+        await contractInstance.methods
+          .addBeneficiaries(claimersToAdd, amountsToAdd)
+          .send({ from });
+        prevLimit = limit;
+        let newLimit = limit + 500;
+        limit =
+          newLimit > totalRewards
+            ? totalRewards
+            : limit == totalRewards
+            ? limit + 1
+            : newLimit;
+      }
+    } else {
+      console.log("We are adding the claimers");
+      await contractInstance.methods
+        .addBeneficiaries(claimers, amounts)
+        .send({ from });
+    }
+  } catch (e) {
+    console.log("Error adding beneficiaries: ", e);
+  }
+}
+
+export const deployTimeLockingContract = async (week: WeekType) => {
+  const provider = new HDWalletProvider(
+    process.env.PRIVATE_KEY as string,
+    `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
+  );
+  const web3 = new Web3(provider);
+  const from = (await web3.eth.getAccounts())[0];
+  const deploymentParams = {
+    data: bytecode,
+    arguments: ["0xcc80c051057b774cd75067dc48f8987c4eb97a5e", unlockTime],
+  };
 
   const gasPriceMedia = await web3.eth.getGasPrice();
   const gasPrice = (Number(gasPriceMedia) + 20000000000).toString(); // Let's sum 20 gwei so we make sure the deployment will be mined
@@ -23,7 +88,7 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
       if (confirmationNumber === 20) {
         const { contractAddress } = receipt;
         console.log("Contract deployed at address (check on 20 confirmations): " + contractAddress);
-        const contractInstance = new web3.eth.Contract(abi, contractAddress);
+
         const unlockDate = dayjs
           .utc()
           .add(unlockTime, "second")
@@ -34,47 +99,8 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
           unlockDate
         );
 
-        const rewards = await Reward.getAllFromWeek(week!.id.toString());
-
-        const claimers = rewards!.map((reward: any) => reward.address);
-        const amounts = rewards!.map((reward: any) => reward.nec_earned * 1e18);
-        const totalRewards = rewards!.length;
-
-        console.log("Claimers ", claimers);
-        console.log("Amounts ", amounts);
-        console.log("Total rewards", totalRewards);
-        try {
-          if (totalRewards > 500) {
-            let prevLimit = 0;
-            let limit = 499;
-            while (limit < totalRewards) {
-              let claimersToAdd = [];
-              let amountsToAdd = [];
-              for (let i = prevLimit; i < limit; i++) {
-                claimersToAdd.push(claimers[i]);
-                amountsToAdd.push(amounts[i]);
-              }
-              await contractInstance.methods
-                .addBeneficiaries(claimersToAdd, amountsToAdd)
-                .send({ from });
-              prevLimit = limit;
-              let newLimit = limit + 500;
-              limit =
-                newLimit > totalRewards
-                  ? totalRewards
-                  : limit == totalRewards
-                  ? limit + 1
-                  : newLimit;
-            }
-          } else {
-            console.log("We are adding the claimers");
-            await contractInstance.methods
-              .addBeneficiaries(claimers, amounts)
-              .send({ from });
-          }
-        } catch (e) {
-          console.log("Error adding beneficiaries: ", e);
-        }
+        const refetchedWeek = await Week.getWeekById(week!.id.toString())
+        await addBeneficiaries(refetchedWeek)
       }
     })
     .then((contractInstance) => {
