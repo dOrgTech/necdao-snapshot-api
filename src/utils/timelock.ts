@@ -80,7 +80,7 @@ export const deployTimeLockingContract = async (week: WeekType) => {
   };
 
   const gasPriceMedia = await web3.eth.getGasPrice();
-  const gasPrice = (Number(gasPriceMedia) + 20000000000).toString(); // Let's sum 20 gwei so we make sure the deployment will be mined
+  const gasPrice = (Number(gasPriceMedia) + 10000000000).toString(); // Let's sum 10 gwei so we make sure the deployment will be mined
   new web3.eth.Contract(abi)
     .deploy(deploymentParams)
     .send({ from, gasPrice })
