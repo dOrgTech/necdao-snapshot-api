@@ -4,18 +4,18 @@ import Web3 from "web3";
 import dayjs from "dayjs";
 const { abi, bytecode } = require("../../build/contracts/TokenTimelock.json");
 
-const unlockTime = process.env.DEVELOPMENT === 'true'? 31556952: 31556952
+const unlockTime = process.env.DEVELOPMENT === 'true'? 10800: 31556952
 
 export const deployTimeLockingContract = async (week: WeekType) => {
   const provider = new HDWalletProvider(
     process.env.PRIVATE_KEY as string,
-    `https://rinkeby.infura.io/v3/${process.env.INFURA_API_KEY}`
+    `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
   );
   const web3 = new Web3(provider);
   const from = (await web3.eth.getAccounts())[0];
   const deploymentParams = {
     data: bytecode,
-    arguments: ["0xb132b08112f627cff1a3be863586cd51dcd42b4c", unlockTime],
+    arguments: ["0xcc80c051057b774cd75067dc48f8987c4eb97a5e", unlockTime],
   };
   const contract = await new web3.eth.Contract(abi)
     .deploy(deploymentParams)

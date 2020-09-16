@@ -80,7 +80,7 @@ export const getCurrentSnapshot = async (_: Request, response: Response) => {
 
       return;
     }
-    const formattedSnapshot = dayjs(snapshotTaken).format();
+    const formattedSnapshot = dayjs.utc(snapshotTaken).format();
     response.status(200).json({ formattedSnapshot });
   } catch (error) {
     console.log("Error ", error);

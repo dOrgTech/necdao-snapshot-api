@@ -10,7 +10,7 @@ dayjs.extend(weekOfYear);
 dayjs.extend(utc);
 
 export default dayjs;
-export const today = () => dayjs().utc().format("YYYY-MM-DD");
+export const today = () => dayjs.utc().format("YYYY-MM-DD");
 export const actualWeekNumber = () => dayjs().week();
 
 export const getCurrentWeek = async () => {
@@ -20,18 +20,18 @@ export const getCurrentWeek = async () => {
     return false
   }
 
-  const todayDate = dayjs()
+  const todayDate = dayjs.utc()
 
   return weeks.find(week => {
-    const formattedEndDate = dayjs(week.end_date)
-    const formattedStartDate = dayjs(week.start_date)
+    const formattedEndDate = dayjs.utc(week.end_date)
+    const formattedStartDate = dayjs.utc(week.start_date)
 
     return todayDate.isBetween(formattedStartDate, formattedEndDate)
   })
 }
 
 export const todayTimestamp = () => {
-  return dayjs().format('YYYY-MM-DD HH:mm:ssZ')
+  return dayjs.utc().format('YYYY-MM-DD HH:mm:ssZ')
 }
 
 export const getCurrentPeriodId = async () => {
