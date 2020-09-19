@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { Reward, Week } from "../models";
+import { tokenVerify } from "../middlewares/tokenVerify";
 
 const router = Router();
 
@@ -53,7 +54,7 @@ export const getAllWeeksAndRewards = async (
   }
 };
 
+router.get("/week/all", tokenVerify, getAllWeeks);
 router.get("/week/rewards/:address", getAllWeeksAndRewards);
-router.get("/week/all", getAllWeeks);
 
 export default router;

@@ -3,6 +3,7 @@ import { Router, Request, Response } from "express";
 import dayjs, { actualWeekNumber, getCurrentPeriodId, getCurrentWeek, todayTimestamp } from "../utils/day";
 import { Period } from "../models";
 import { Week } from "../models";
+import { tokenVerify } from "../middlewares/tokenVerify";
 
 const router = Router();
 
@@ -103,6 +104,6 @@ export const getCurrentPeriodDates = async (
 };
 
 router.get("/period/dates", getCurrentPeriodDates);
-router.post("/period", schedulePeriod);
+router.post("/period", tokenVerify, schedulePeriod);
 
 export default router;

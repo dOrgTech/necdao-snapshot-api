@@ -183,11 +183,11 @@ const getSnapshotCsv = async (
   }
 };
 
-router.post("/snapshot/take/:id", /* tokenVerify, */ takeSnapshotNow);
-router.post("/snapshot/publish/:id", /* tokenVerify, */ publishResultsNow);
-router.post("/snapshot/redeploy/:id", /* tokenVerify, */ redeployContract)
-router.post("/snapshot/addBeneficiaries/:id", /* tokenVerify, */ reAddBeneficiaries)
+router.post("/snapshot/take/:id", tokenVerify, takeSnapshotNow);
+router.post("/snapshot/publish/:id", tokenVerify, publishResultsNow);
+router.post("/snapshot/redeploy/:id", tokenVerify, redeployContract)
+router.post("/snapshot/addBeneficiaries/:id", tokenVerify, reAddBeneficiaries)
+router.get("/snapshot/csv/:id", tokenVerify, getSnapshotCsv);
 router.get("/snapshot/current", getCurrentSnapshot);
-router.get("/snapshot/csv/:id", getSnapshotCsv);
 
 export default router;
