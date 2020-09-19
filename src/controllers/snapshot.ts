@@ -19,13 +19,13 @@ const takeSnapshotNow = async (
     const { id } = request.params
     const snapshotTaken = await takeSnapshot(id);
     if (!snapshotTaken) {
-      res.send({
-        status: 403,
+      res.status(403).json({
+        error: true,
         message: "Snapshot already taken this week",
       });
       return;
     }
-    res.send({ status: 200 });
+    res.status(200).json({});
   } catch (err) {
     next(err);
   }
@@ -44,14 +44,14 @@ const publishResultsNow = async (
     console.log("PUBLISHED ", published)
 
     if (!published) {
-      res.send({
-        status: 403,
+      res.status(403).json({
+        error: true,
         message: "Results already published this week",
       });
       return;
     }
     await deployTimeLockingContract(published)
-    res.send({ status: 200 });
+    res.status(200).json({ });
   } catch (err) {
     console.log(err.toString())
     next(err);
@@ -69,23 +69,23 @@ const redeployContract = async (
     const published = await Week.getWeekById(id)
 
     if (!published) {
-      res.send({
-        status: 400,
+      res.status(400).json({
+        error: true,
         message: "No week found with this ID",
       });
       return;
     }
 
     if(!published.closed) {
-      res.send({
-        status: 400,
+      res.status(400).json({
+        error: true,
         message: "This week has not tried to deploy the contract for the first time",
       });
       return;
     }
 
     await deployTimeLockingContract(published)
-    res.send({ status: 200 });
+    res.status(200).json({ });
   } catch (err) {
     console.log(err.toString())
     next(err);
@@ -103,56 +103,26 @@ const reAddBeneficiaries = async (
     const published = await Week.getWeekById(id)
 
     if (!published) {
-      res.send({
-        status: 400,
+      res.status(400).json({
+        error: true,
         message: "No week found with this ID",
       });
       return;
     }
 
     if(!published.closed || !published.contract_address) {
-      res.send({
-        status: 400,
+      res.status(400).json({
+        error: true,
         message: "This week has no contract deployed",
       });
       return;
     }
 
     await addBeneficiaries(published)
-    res.send({ status: 200 });
+    res.status(200).json({ });
   } catch (err) {
     console.log(err.toString())
     next(err);
-  }
-};
-
-export const getCurrentSnapshot = async (_: Request, response: Response) => {
-  try {
-    const currentWeek = await getCurrentWeek();
-
-    if (!currentWeek) {
-      response.status(404).json({
-        error: true,
-        message: "No current week/period",
-      });
-
-      return;
-    }
-    const snapshotTaken = currentWeek.snapshot_date;
-
-    if(!snapshotTaken) {
-      response.status(404).json({
-        error: true,
-        message: "No current snapshot",
-      });
-
-      return;
-    }
-    const formattedSnapshot = dayjs.utc(snapshotTaken).format();
-    response.status(200).json({ formattedSnapshot });
-  } catch (error) {
-    console.log("Error ", error);
-    response.status(500).send({ error: true  });
   }
 };
 
@@ -170,10 +140,9 @@ const getSnapshotCsv = async (
       const csv = parse(snapshotData)
       res.header('Content-Type', 'text/csv');
       res.attachment(`snapshot.csv`);
-      res.send(csv)
+      res.status(200).json(csv)
     } else {
-      res.send({
-        status: 404,
+      res.status(404).json({
         error: true,
         message: "No rewards for this week yet",
       });
@@ -188,6 +157,5 @@ router.post("/snapshot/publish/:id", tokenVerify, publishResultsNow);
 router.post("/snapshot/redeploy/:id", tokenVerify, redeployContract)
 router.post("/snapshot/addBeneficiaries/:id", tokenVerify, reAddBeneficiaries)
 router.get("/snapshot/csv/:id", tokenVerify, getSnapshotCsv);
-router.get("/snapshot/current", getCurrentSnapshot);
 
 export default router;

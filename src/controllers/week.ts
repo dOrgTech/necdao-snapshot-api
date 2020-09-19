@@ -10,7 +10,7 @@ export const getAllWeeks = async (_: Request, response: Response) => {
     response.status(200).json(rewards);
   } catch (error) {
     console.log("Error ", error);
-    response.status(500).send({ error: true });
+    response.status(500).json({ error: true });
   }
 };
 
@@ -50,7 +50,7 @@ export const getAllWeeksAndRewards = async (
     response.status(200).json(result);
   } catch (error) {
     console.log("Error ", error);
-    response.status(500).send({ error: true });
+    response.status(500).json({ error: true });
   }
 };
 

@@ -47,10 +47,10 @@ export const schedulePeriod = async (request: Request, response: Response) => {
     });
 
     await Period.insert(totalNec, weekData);
-    response.send({ status: 200 });
+    response.status(200).json({ });
   } catch (error) {
     console.log("Error ", error);
-    response.status(500).send({ error: true });
+    response.status(500).json({ error: true });
   }
 };
 
@@ -99,7 +99,7 @@ export const getCurrentPeriodDates = async (
     response.status(200).json(result);
   } catch (error) {
     console.log("Error ", error);
-    response.status(500).send({ error: true });
+    response.status(500).json({ error: true });
   }
 };
 

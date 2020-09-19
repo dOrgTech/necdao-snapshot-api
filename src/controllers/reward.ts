@@ -6,72 +6,6 @@ import { Week } from "../models";
 
 const router = Router();
 
-export const getAllRewards = async (_: Request, response: Response) => {
-  try {
-    let rewards = await Reward.getAll();
-    response.status(200).json(rewards);
-  } catch (error) {
-    console.log("Error ", error);
-    response.status(500).send({ error: true });
-  }
-};
-
-export const getRewardsByAddress = async (
-  request: Request,
-  response: Response
-) => {
-  const { address } = request.params;
-  try {
-    const currentWeek = await getCurrentWeek();
-
-    if (!currentWeek) {
-      response.status(404).json({
-        error: true,
-        message: "No current week/period",
-      });
-
-      return;
-    }
-
-    const rewards = await Reward.getAllByAddress(address) as any;
-    const weekIds = (await Week.getAllWeeks()) as {
-        id: number;
-        fk_period_id: number;
-      }[];
-    const formattedWeekIds = weekIds && weekIds.map((w) => w.id);
-    let filterSnapshots =
-      formattedWeekIds &&
-      rewards &&
-      rewards
-        .map((rewardRow: any) => {
-          if (!rewardRow.closed) {
-            return {
-              ...rewardRow,
-              snapshot_date: null,
-              nec_earned: null,
-              bpt_balance: null,
-            };
-          }
-          return rewardRow;
-        })
-        .filter((snapshot: any) => snapshot);
-
-    if (!filterSnapshots) {
-      response.status(404).json({
-        error: true,
-        message: "No filtered snapshots",
-      });
-
-      return;
-    }
-
-    response.status(200).json(filterSnapshots);
-  } catch (error) {
-    console.log("Error ", error);
-    response.status(500).send({ error: true });
-  }
-};
-
 export const getRemainingAndTotalRewards = async (
   _: Request,
   response: Response
@@ -88,12 +22,10 @@ export const getRemainingAndTotalRewards = async (
     response.status(200).json(necResults);
   } catch (error) {
     console.log("Error ", error);
-    response.status(500).send({ error: true });
+    response.status(500).json({ error: true });
   }
 };
 
-router.get("/reward/all", getAllRewards);
 router.get("/reward", getRemainingAndTotalRewards);
-router.get("/reward/address/:address", getRewardsByAddress);
 
 export default router;

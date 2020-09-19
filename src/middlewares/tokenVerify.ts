@@ -11,8 +11,8 @@ export const tokenVerify = (
     const token = request.headers.authorization?.split(" ")[1];
       try {
       if (err || !jsonwebtoken) {
-        return response.send({
-          status: 401,
+        return response.status(401).json({
+          error: true,
           message: "Your token is not valid or null, please log in",
         });
       }
