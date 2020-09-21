@@ -40,6 +40,6 @@ export const register = async (request: Request, response: Response) => {
 };
 
 router.post("/login", auth);
-router.post("/signup", tokenVerify, register);
+router.post("/signup", register);
 
 export default router;
