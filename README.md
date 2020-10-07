@@ -17,18 +17,25 @@ create table week (id bigserial not null, nec_to_distribute bigint, snapshot_dat
 create table reward (fk_week_id bigint, id bigserial not null, primary key(id), address varchar, bpt_balance numeric, nec_earned numeric, constraint fk_reward_week foreign key(fk_week_id) references week(id));
 
 create table users (id bigserial not null, email varchar, password varchar);
-insert into users (email, password) values ('admin', '$2y$10$cGRHNMDjWQI8SQMeOgsCcelDQySVa0JN8DG3WIbrUkvUMPk7e1lye');
+insert into users (email, password) values ('admin2', '$2y$10$.YhBbfUzXYbClV7DIUFY6.3ydJ2Bz2zduQwExxcwCLy9WdH7h2Ake');
 
-create user admin with password 'password';
-grant all privileges on database necdao to admin;
-grant all privileges on table period to admin;
-grant all privileges on table week to admin;
-grant all privileges on table reward to admin;
-grant all privileges on table users to admin;
+create user admin2 with password 'password';
+alter database necdao owner to admin2;
+grant all privileges on database necdao to admin2;
+grant all privileges on table period to admin2;
+grant all privileges on table week to admin2;
+grant all privileges on table reward to admin2;
+grant all privileges on table users to admin2;
+grant all privileges on sequence period_id_seq to admin2;
+grant all privileges on sequence reward_id_seq to admin2;
+grant all privileges on sequence users_id_seq to admin2;
+grant all privileges on sequence week_id_seq to admin2;
 
-This will create all appropriate tables and columns and will seed the users table with an admin account (email: 'admin', password: 'password')
+This will create all appropriate tables and columns and will seed the users table with an admin2 account (email: 'admin2', password: 'password')
 
-2. Create a .env file with the following:
+If you still cannot login, we had to comment the auth code here and in the UI, create a user through register in the admin2 dashboard, then uncomment the auth code to login with that user.
+
+1. Create a .env file with the following:
 
 BALANCER_SUBGRAPH_API=https://api.thegraph.com/subgraphs/name/balancer-labs/balancer-beta
 DATABASE_URL= -- url of the deployed postgres database --
@@ -37,9 +44,9 @@ PRIVATE_KEY= -- Private key of the wallet that has gas for contract deployment -
 INFURA_API_KEY= -- infura api key --
 DEVELOPMENT=true
 
-3. Run the following:
+4. Run the following:
 
 ```
 yarn install
-yarn start
+yarn dev
 ```
