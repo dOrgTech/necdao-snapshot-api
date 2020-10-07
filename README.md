@@ -5,7 +5,7 @@
 ```
 sudo -u postgres psql
 create database necdao;
-\c necdao
+\c necdao;
 ```
 
 2. Run the following scripts in psql after connecting to the PostgresSQL database:
@@ -17,7 +17,7 @@ create table week (id bigserial not null, nec_to_distribute bigint, snapshot_dat
 create table reward (fk_week_id bigint, id bigserial not null, primary key(id), address varchar, bpt_balance numeric, nec_earned numeric, constraint fk_reward_week foreign key(fk_week_id) references week(id));
 
 create table users (id bigserial not null, email varchar, password varchar);
-insert into users (email, password) values ('admin', 'password');
+insert into users (email, password) values ('admin', '$2y$10$cGRHNMDjWQI8SQMeOgsCcelDQySVa0JN8DG3WIbrUkvUMPk7e1lye');
 
 create user admin with password 'password';
 grant all privileges on database necdao to admin;
