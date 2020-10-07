@@ -19,6 +19,13 @@ create table reward (fk_week_id bigint, id bigserial not null, primary key(id), 
 create table users (id bigserial not null, email varchar, password varchar);
 insert into users (email, password) values ('admin', 'password');
 
+create user admin with password 'password';
+grant all privileges on database necdao to admin;
+grant all privileges on table period to admin;
+grant all privileges on table week to admin;
+grant all privileges on table reward to admin;
+grant all privileges on table users to admin;
+
 This will create all appropriate tables and columns and will seed the users table with an admin account (email: 'admin', password: 'password')
 
 2. Create a .env file with the following:
