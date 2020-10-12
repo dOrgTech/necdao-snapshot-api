@@ -33,7 +33,7 @@ grant all privileges on sequence week_id_seq to admin2;
 
 This will create all appropriate tables and columns and will seed the users table with an admin2 account (email: 'admin2', password: 'password')
 
-If you still cannot login, we had to comment the auth code here and in the UI, create a user through register in the admin2 dashboard, then uncomment the auth code to login with that user.
+If you still cannot login, comment the auth code here and in the UI, create a user through register in the admin2 dashboard, then uncomment the auth code to login with that user.
 
 1. Create a .env file with the following:
 
