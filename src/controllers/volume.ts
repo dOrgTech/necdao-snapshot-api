@@ -10,7 +10,6 @@ const getLast24HoursVolumeWrapper = async (
   next: NextFunction
 ) => {
   try {
-    console.log("Hello")
     const volume = await getLast24HoursVolume();
 
     if (volume) {
