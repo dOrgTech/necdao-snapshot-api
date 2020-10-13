@@ -20,6 +20,12 @@ create table users (id bigserial not null, email varchar, password varchar);
 insert into users (email, password) values ('admin2', '$2y$10$.YhBbfUzXYbClV7DIUFY6.3ydJ2Bz2zduQwExxcwCLy9WdH7h2Ake');
 
 create table reward_multiple (id bigserial not null, primary key(id), volume_minimum numeric, reward_multiple numeric);
+INSERT INTO reward_multiple (volume_minimum, reward_multiple) VALUES
+    (0, 0.80),
+    (5000, 1.10),
+    (20000, 1.20),
+    (100000, 1.50),
+    (1000000, 2.00);
 
 create user admin2 with password 'password';
 alter database necdao owner to admin;
