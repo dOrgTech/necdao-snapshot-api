@@ -1,10 +1,11 @@
 import AuthController from "./auth";
 import PeriodController from "./period";
-import PoolController from './pool';
+import PoolController from "./pool";
 import RewardController from "./reward";
+import RewardMultipleController from "./rewardMultiple"
 import SnapshotController from "./snapshot";
-import VolumeController from './volume';
-import WeekController from './week';
+import VolumeController from "./volume";
+import WeekController from "./week";
 
 export const controllers = [
   SnapshotController,
@@ -13,5 +14,6 @@ export const controllers = [
   PeriodController,
   PoolController,
   WeekController,
-  VolumeController
+  VolumeController,
+  RewardMultipleController
 ];

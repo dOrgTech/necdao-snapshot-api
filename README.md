@@ -1,6 +1,6 @@
 # necdao-snapshot-api
 
-1. Log into psql and create a Postgres database:
+1. Log into psql and create a Postgres database and a user called admin:
 
 ```
 sudo -u postgres psql
@@ -19,17 +19,20 @@ create table reward (fk_week_id bigint, id bigserial not null, primary key(id), 
 create table users (id bigserial not null, email varchar, password varchar);
 insert into users (email, password) values ('admin2', '$2y$10$.YhBbfUzXYbClV7DIUFY6.3ydJ2Bz2zduQwExxcwCLy9WdH7h2Ake');
 
+create table reward_multiple (id bigserial not null, primary key(id), volume_minimum numeric, reward_multiple numeric);
+
 create user admin2 with password 'password';
-alter database necdao owner to admin2;
-grant all privileges on database necdao to admin2;
-grant all privileges on table period to admin2;
-grant all privileges on table week to admin2;
-grant all privileges on table reward to admin2;
-grant all privileges on table users to admin2;
-grant all privileges on sequence period_id_seq to admin2;
-grant all privileges on sequence reward_id_seq to admin2;
-grant all privileges on sequence users_id_seq to admin2;
-grant all privileges on sequence week_id_seq to admin2;
+alter database necdao owner to admin;
+grant all privileges on database necdao to admin;
+grant all privileges on table period to admin;
+grant all privileges on table week to admin;
+grant all privileges on table reward to admin;
+grant all privileges on table users to admin;
+grant all privileges on table reward_multiple to admin;
+grant all privileges on sequence period_id_seq to admin;
+grant all privileges on sequence reward_id_seq to admin;
+grant all privileges on sequence users_id_seq to admin;
+grant all privileges on sequence week_id_seq to admin;
 
 This will create all appropriate tables and columns and will seed the users table with an admin2 account (email: 'admin2', password: 'password')
 
