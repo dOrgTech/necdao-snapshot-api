@@ -39,6 +39,7 @@ grant all privileges on sequence period_id_seq to admin;
 grant all privileges on sequence reward_id_seq to admin;
 grant all privileges on sequence users_id_seq to admin;
 grant all privileges on sequence week_id_seq to admin;
+grant all privileges on sequence reward_multiple_id_seq to admin;
 
 This will create all appropriate tables and columns and will seed the users table with an admin2 account (email: 'admin2', password: 'password')
 

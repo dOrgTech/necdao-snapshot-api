@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 
 import { RewardMultiple } from "../models";
+import { RewardMultipleType } from "../models/RewardMultiple";
 import { tokenVerify } from "../middlewares/tokenVerify";
 
 const router = Router();
@@ -34,11 +35,26 @@ const update = async (
     next: NextFunction
 ) => {
     try {
-        const rewardMultipleUpdated = undefined;
+        const { id } = request.params;
+        const { volume_minimum, reward_multiple } = request.body;
+        if (volume_minimum === null || volume_minimum === "" ||
+            reward_multiple === null || reward_multiple === "" ||
+            id === null || id === "") {
+            res.status(400).json({
+                error: true,
+                message: "Values cannot be null or empty",
+            });
+            return;
+        }
+
+        const rewardMultiple: RewardMultipleType =
+            { volume_minimum: Number(volume_minimum), reward_multiple: Number(reward_multiple), id: Number(id) };
+
+        await RewardMultiple.update(rewardMultiple);
 
         res.header("Content-Type", "application/json");
-        if (rewardMultipleUpdated) {
-            res.status(200).json(rewardMultipleUpdated)
+        if (rewardMultiple) {
+            res.status(200).json(rewardMultiple)
         } else {
             res.status(404).json({
                 error: true,
@@ -60,7 +76,20 @@ const create = async (
     next: NextFunction
 ) => {
     try {
-        const rewardMultiples = undefined;
+        const { volume_minimum, reward_multiple } = request.body;
+        if (volume_minimum === null || volume_minimum === "" ||
+            reward_multiple === null || reward_multiple === "") {
+            res.status(400).json({
+                error: true,
+                message: "Values cannot be null or empty",
+            });
+            return;
+        }
+
+        const rewardMultiples: RewardMultipleType[] =
+            [{ volume_minimum: Number(volume_minimum), reward_multiple: Number(reward_multiple) }]
+
+        await RewardMultiple.insert(rewardMultiples);
 
         res.header("Content-Type", "application/json");
         if (rewardMultiples) {
@@ -86,14 +115,20 @@ const del = async (
     next: NextFunction
 ) => {
     try {
-        const rewardMultiples = undefined;
-
-        res.header("Content-Type", "application/json");
-        if (rewardMultiples) {
-            res.status(200).json(rewardMultiples)
-        } else {
-            res.status(204);
+        const { id } = request.params;
+        if (id === null || id === "") {
+            res.status(400).json({
+                error: true,
+                message: "Id cannot be null or empty",
+            });
+            return;
         }
+
+        const idNumber = Number.parseInt(id);
+
+        await RewardMultiple.del(idNumber);
+        res.header("Content-Type", "application/json");
+        res.status(200).json(idNumber);
     } catch (err) {
         console.log("Error ", err);
         res.status(500).json({
@@ -105,7 +140,7 @@ const del = async (
 
 router.get("/reward/multiple", read);
 router.put("/reward/multiple/:id", tokenVerify, update);
-router.post("/reward/multiple/:id", tokenVerify, create)
+router.post("/reward/multiple", tokenVerify, create)
 router.delete("/reward/multiple/:id", tokenVerify, del)
 
 export default router;

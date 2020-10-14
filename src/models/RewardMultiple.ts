@@ -27,7 +27,7 @@ export class RewardMultiple {
   ): Promise<void> {
     const connection = await db.connect();
     try {
-    
+
       await connection.tx(async (transaction) => {
         const queries: any = [
         ];
@@ -45,6 +45,60 @@ export class RewardMultiple {
       });
     } catch (error) {
       console.log("Error ", error);
+      throw error;
+    } finally {
+      connection.done();
+    }
+  }
+
+  public static async update(
+    rewardMultiple: RewardMultipleType
+  ): Promise<void> {
+    const connection = await db.connect();
+    try {
+
+      await connection.tx(async (transaction) => {
+        const queries: any = [
+        ];
+        const rewardMultipleParams = Object.values(rewardMultiple)
+        const insertion = transaction.oneOrNone(
+          `UPDATE reward_multiple 
+          SET volume_minimum = $1, reward_multiple = $2
+          WHERE id = $3`,
+          [...rewardMultipleParams]
+        );
+        queries.push(insertion);
+        transaction.batch(queries);
+      });
+    } catch (error) {
+      console.log("Error ", error);
+      throw error;
+    } finally {
+      connection.done();
+    }
+  }
+
+  public static async del(
+    id: Number
+  ): Promise<void> {
+    const connection = await db.connect();
+    try {
+
+      await connection.tx(async (transaction) => {
+        const queries: any = [
+        ];
+        const rewardMultipleParams = Object.values({id});
+        const deletion = transaction.oneOrNone(
+          `DELETE FROM reward_multiple 
+            WHERE id = $1`,
+          [...rewardMultipleParams]
+        );
+        queries.push(deletion);
+        transaction.batch(queries);
+      });
+    } catch (error) {
+      console.log("Error ", error);
+      throw error;
     } finally {
       connection.done();
     }
