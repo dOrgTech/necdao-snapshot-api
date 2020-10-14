@@ -1,9 +1,9 @@
-import { Router, Request, Response } from "express";
-import { authenticate } from "passport";
-import { sign, Secret } from "jsonwebtoken";
-import { hash } from "bcrypt";
-
+import { Request, Response, Router } from "express";
+import { Secret, sign } from "jsonwebtoken";
 import { User, UserType } from "../models";
+
+import { authenticate } from "passport";
+import { hash } from "bcrypt";
 import { tokenVerify } from "../middlewares/tokenVerify";
 
 const router = Router();

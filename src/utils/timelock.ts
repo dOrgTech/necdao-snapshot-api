@@ -1,7 +1,9 @@
+import { Reward, Week, WeekType } from "../models";
+
 import HDWalletProvider from "@truffle/hdwallet-provider";
-import { Week, Reward, WeekType } from "../models";
 import Web3 from "web3";
 import dayjs from "dayjs";
+
 const { abi, bytecode } = require("../../build/contracts/TokenTimelock.json");
 
 const unlockTime = process.env.DEVELOPMENT === "true" ? 10800 : 31556952;
@@ -9,7 +11,7 @@ const unlockTime = process.env.DEVELOPMENT === "true" ? 10800 : 31556952;
 export const addBeneficiaries = async (week: WeekType | undefined) => {
   const provider = new HDWalletProvider(
     process.env.PRIVATE_KEY as string,
-    `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
+    `${process.env.INFURA_URL}/${process.env.INFURA_API_KEY}`
   );
   const web3 = new Web3(provider);
   const from = (await web3.eth.getAccounts())[0];
