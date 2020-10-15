@@ -13,6 +13,9 @@ export default dayjs;
 export const today = () => dayjs.utc().format("YYYY-MM-DDTHH:mm:ssZ");
 export const actualWeekNumber = () => dayjs.utc().week();
 
+export const aDayBeforeInUnix = () => dayjs.utc().subtract(1, "day").unix()
+export const nowInUnix = () => dayjs.utc().unix()
+
 export const getCurrentWeek = async () => {
   const weeks = await Week.getAllWeeks()
 

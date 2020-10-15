@@ -2,8 +2,9 @@ import dayjs, { actualWeekNumber, getCurrentWeek, today } from "../utils/day";
 import { GraphQLClient } from "../graphql/client";
 import { GET_BPT_HOLDERS } from "../graphql/queries";
 
-import { Week, WeekType } from "../models";
+import { Week, WeekType, RewardMultiple } from "../models";
 import { Reward } from "../models";
+import { getLast24HoursVolume } from "./diversifiApi";
 
 interface PoolShares {
   userAddress: {
@@ -42,15 +43,20 @@ export const takeSnapshot = async (id?: string): Promise<boolean> => {
   }
 
   const weekIsFuture = dayjs.utc(week.start_date).isAfter(dayjs.utc());
-
   if (!week.snapshot_date && !weekIsFuture) {
+    const volumns = await getLast24HoursVolume()
+    const lastMultiple = await RewardMultiple.getLast()
     const distribution = week!.nec_to_distribute as number;
     const paramsInfo = shares.map((share) => {
       const { address, balance, prorataPercentage } = share;
+      const userHasTrade = volumns.find((volume: any) => volume.address === address)
+      const userTradingVolume = userHasTrade ? userHasTrade.USDValue : 0
+      // @TODO
+      // const userHasMultiplier = lastMultiple!.reduce((m: any) => {}, 0)
       return {
         address,
         bpt_balance: balance,
-        nec_earned: distribution * (prorataPercentage / 100),
+        nec_earned: distribution * (prorataPercentage / 100) + userTradingVolume /* * multiplier */,
       };
     });
     await Reward.insertAllAddresses(week!.id as number, paramsInfo);

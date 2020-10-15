@@ -1,13 +1,12 @@
 import { db } from "../services";
 
 export interface RewardMultipleType {
-  volume_minimum: number,
-  reward_multiple: number,
-  id?: number;
+  limit: number,
+  multiple: number,
 }
 
 export class RewardMultiple {
-  public static async getAll(): Promise<RewardMultipleType[] | undefined> {
+  public static async getLast(): Promise<RewardMultipleType[] | undefined> {
     const connection = await db.connect();
     try {
       const rewardMultiples = await connection.manyOrNone(
