@@ -8,7 +8,7 @@ const router = Router();
 
 const read = async (_: Request, response: Response) => {
   try {
-    const multiples = await RewardMultiple.getAll();
+    const multiples = await RewardMultiple.getLast();
     response.send({ multiples });
   } catch (err) {
     console.log("Error ", err);
