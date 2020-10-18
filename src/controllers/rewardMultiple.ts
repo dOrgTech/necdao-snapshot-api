@@ -21,12 +21,12 @@ const read = async (_: Request, response: Response) => {
 
 const create = async (request: Request, response: Response) => {
   try {
-    console.log(request.body)
+    console.log(request.body);
     const { multiples } = request.body;
 
     multiples.forEach((multiple: RewardMultipleType) => {
-      const hasLimit = "limit" in multiple;
-      const hasMultiple = "multiple" in multiple;
+      const hasLimit = "upper_limit" in multiple;
+      const hasMultiple = "multiplier" in multiple;
       if (!hasLimit && !hasMultiple) {
         response.send({
           error: true,
@@ -35,7 +35,12 @@ const create = async (request: Request, response: Response) => {
       }
     });
 
-    const formattedMultiples = multiples.map((m: any) => ({ upper_limit: m.limit, multiplier: m.multiple }))
+    const formattedMultiples = multiples.map(
+      ({ upper_limit, multiplier }: any) => ({
+        upper_limit,
+        multiplier,
+      })
+    );
     await RewardMultiple.insert(formattedMultiples);
 
     response.json({ status: 200 });
