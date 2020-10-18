@@ -41,6 +41,8 @@ export const getAllWeeksAndRewards = async (
             address: rewardThatWeek.address,
             bpt_balance: rewardThatWeek.bpt_balance,
             nec_earned: rewardThatWeek.nec_earned,
+            trading_volume: rewardThatWeek.trading_volume,
+            multiplier: rewardThatWeek.multiplier
           };
         }
       }

@@ -21,6 +21,7 @@ const read = async (_: Request, response: Response) => {
 
 const create = async (request: Request, response: Response) => {
   try {
+    console.log(request.body)
     const { multiples } = request.body;
 
     multiples.forEach((multiple: RewardMultipleType) => {
@@ -34,7 +35,8 @@ const create = async (request: Request, response: Response) => {
       }
     });
 
-    await RewardMultiple.insert(multiples);
+    const formattedMultiples = multiples.map((m: any) => ({ upper_limit: m.limit, multiplier: m.multiple }))
+    await RewardMultiple.insert(formattedMultiples);
 
     response.json({ status: 200 });
   } catch (err) {
@@ -47,6 +49,6 @@ const create = async (request: Request, response: Response) => {
 };
 
 router.get("/reward/multiple", read);
-router.post("/reward/multiple", tokenVerify, create);
+router.post("/reward/multiple", create);
 
 export default router;
