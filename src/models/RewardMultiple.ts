@@ -2,7 +2,7 @@ import { db } from "../services";
 
 export interface RewardMultipleType {
   id: string
-  upper_limit: number,
+  lower_limit: number,
   multiplier: number,
 }
 
@@ -37,9 +37,9 @@ export class RewardMultiple {
 
         for(let i = 0; i < params.length; i++) {
           await transaction.oneOrNone(
-          `INSERT INTO multipliers (upper_limit, multiplier, fk_multiplier_group)
+          `INSERT INTO multipliers (lower_limit, multiplier, fk_multiplier_group)
            VALUES ($1, $2, $3) RETURNING *`,
-           [params[i].upper_limit, params[i].multiplier, multipleGroup.id])
+           [params[i].lower_limit, params[i].multiplier, multipleGroup.id])
         }
       });
     } catch (error) {

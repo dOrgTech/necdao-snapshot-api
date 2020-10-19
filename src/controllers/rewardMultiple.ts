@@ -25,7 +25,7 @@ const create = async (request: Request, response: Response) => {
     const { multiples } = request.body;
 
     multiples.forEach((multiple: RewardMultipleType) => {
-      const hasLimit = "upper_limit" in multiple;
+      const hasLimit = "lower_limit" in multiple;
       const hasMultiple = "multiplier" in multiple;
       if (!hasLimit && !hasMultiple) {
         response.send({
@@ -36,8 +36,8 @@ const create = async (request: Request, response: Response) => {
     });
 
     const formattedMultiples = multiples.map(
-      ({ upper_limit, multiplier }: any) => ({
-        upper_limit,
+      ({ lower_limit, multiplier }: any) => ({
+        lower_limit,
         multiplier,
       })
     );

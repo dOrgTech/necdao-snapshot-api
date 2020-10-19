@@ -24,8 +24,8 @@ export const getCorrectMultipleFromTradingVolume = (
   }
 
   const correspondingMultiple = multiples
-    .sort((a, b) => b.upper_limit - a.upper_limit)
-    .find((m) => m.upper_limit <= userTradingVolume);
+    .sort((a, b) => b.lower_limit - a.lower_limit)
+    .find((m) => m.lower_limit <= userTradingVolume);
 
   return correspondingMultiple || multiples.slice(-1)[0]
 };
