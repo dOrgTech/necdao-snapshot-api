@@ -72,7 +72,8 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
 };
 
 export const deployTimeLockingContract = async (week: WeekType) => {
-  const network = process.env.NETWORK || 'rinkeby';
+  // const network = process.env.NETWORK || 'rinkeby';
+  const network = 'mainnet';
   const provider = new HDWalletProvider(
     process.env.PRIVATE_KEY as string,
     `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`
