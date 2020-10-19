@@ -8,7 +8,7 @@ import { deployTimeLockingContract } from "./timelock";
 
 const getCronExpression = () => {
   if (process.env.DEVELOPMENT === "true") {
-    return "25 */1 * * *";
+    return "50 */1 * * *";
   }
 
   return "0 16 * * */0";
