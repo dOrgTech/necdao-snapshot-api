@@ -14,6 +14,7 @@ export class Reward {
     try {
       const rewards = await connection.manyOrNone(
         `SELECT * FROM reward JOIN week on reward.fk_week_id = week.id
+         JOIN multipliers ON multipliers.id = reward.fk_multipliers_id
          WHERE fk_week_id = $1`,
         [weekId]
       );
@@ -86,7 +87,7 @@ export class Reward {
     const connection = await db.connect();
     try {
       const rewards = await connection.manyOrNone(
-        `SELECT * FROM reward WHERE address = $1`,
+        `SELECT * FROM reward JOIN multipliers ON multipliers.id = reward.fk_multipliers_id WHERE address = $1`,
         [address]
       );
       return rewards;
@@ -117,9 +118,9 @@ export class Reward {
           const rewardParams = Object.values(reward)
           const period = transaction.oneOrNone(
             `INSERT INTO reward 
-            (fk_week_id, address, bpt_balance, nec_earned) 
-            VALUES ($1, $2, $3, $4)`,
-            [weekId, ...rewardParams]
+            (fk_week_id, address, bpt_balance, nec_earned, trading_volume, fk_multipliers_id) 
+            VALUES ($1, $2, $3, $4, $5, $6)`,
+            [weekId, reward.address, reward.bpt_balance, reward.nec_earned, reward.trading_volume, reward.fk_multipliers_id]
           );
           queries.push(period);
         });

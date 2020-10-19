@@ -1,17 +1,19 @@
 import { db } from "../services";
 
 export interface RewardMultipleType {
-  volume_minimum: number,
-  reward_multiple: number,
-  id?: number;
+  id: string
+  upper_limit: number,
+  multiplier: number,
 }
 
 export class RewardMultiple {
-  public static async getAll(): Promise<RewardMultipleType[] | undefined> {
+  public static async getLast(): Promise<RewardMultipleType[] | undefined> {
     const connection = await db.connect();
     try {
       const rewardMultiples = await connection.manyOrNone(
-        `SELECT * FROM reward_multiple`
+        `SELECT * from multipliers 
+        JOIN multiplier_group ON multiplier_group.id = multipliers.fk_multiplier_group
+        WHERE fk_multiplier_group = (SELECT id FROM multiplier_group ORDER BY date_created DESC LIMIT 1)`
       );
       return rewardMultiples;
     } catch (error) {
@@ -28,73 +30,17 @@ export class RewardMultiple {
     const connection = await db.connect();
     try {
 
-      await connection.tx(async (transaction) => {
-        const queries: any = [
-        ];
-        params.forEach((rewardMultiple: any) => {
-          const rewardMultipleParams = Object.values(rewardMultiple)
-          const insertion = transaction.oneOrNone(
-            `INSERT INTO reward_multiple 
-            (volume_minimum, reward_multiple) 
-            VALUES ($1, $2)`,
-            [...rewardMultipleParams]
-          );
-          queries.push(insertion);
-        });
-        transaction.batch(queries);
-      });
-    } catch (error) {
-      console.log("Error ", error);
-      throw error;
-    } finally {
-      connection.done();
-    }
-  }
+      await db.tx(async (transaction) => {
+        const multipleGroup = await transaction.oneOrNone(
+          `INSERT INTO multiplier_group (date_created) VALUES (CURRENT_TIMESTAMP) RETURNING *`
+        )
 
-  public static async update(
-    rewardMultiple: RewardMultipleType
-  ): Promise<void> {
-    const connection = await db.connect();
-    try {
-
-      await connection.tx(async (transaction) => {
-        const queries: any = [
-        ];
-        const rewardMultipleParams = Object.values(rewardMultiple)
-        const insertion = transaction.oneOrNone(
-          `UPDATE reward_multiple 
-          SET volume_minimum = $1, reward_multiple = $2
-          WHERE id = $3`,
-          [...rewardMultipleParams]
-        );
-        queries.push(insertion);
-        transaction.batch(queries);
-      });
-    } catch (error) {
-      console.log("Error ", error);
-      throw error;
-    } finally {
-      connection.done();
-    }
-  }
-
-  public static async del(
-    id: Number
-  ): Promise<void> {
-    const connection = await db.connect();
-    try {
-
-      await connection.tx(async (transaction) => {
-        const queries: any = [
-        ];
-        const rewardMultipleParams = Object.values({id});
-        const deletion = transaction.oneOrNone(
-          `DELETE FROM reward_multiple 
-            WHERE id = $1`,
-          [...rewardMultipleParams]
-        );
-        queries.push(deletion);
-        transaction.batch(queries);
+        for(let i = 0; i < params.length; i++) {
+          await transaction.oneOrNone(
+          `INSERT INTO multipliers (upper_limit, multiplier, fk_multiplier_group)
+           VALUES ($1, $2, $3) RETURNING *`,
+           [params[i].upper_limit, params[i].multiplier, multipleGroup.id])
+        }
       });
     } catch (error) {
       console.log("Error ", error);
