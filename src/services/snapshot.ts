@@ -49,7 +49,7 @@ export const takeSnapshot = async (id?: string): Promise<boolean> => {
     const distribution = week!.nec_to_distribute as number;
     const paramsInfo = shares.map((share) => {
       const { address, balance, prorataPercentage } = share;
-      const userHasTrade = volumns.find((volume: any) => volume.address === address)
+      const userHasTrade = volumns.find((volume: any) => volume.address === address.toLowerCase())
       const userTradingVolume = userHasTrade ? userHasTrade.USDValue : 0
       const correspondingMultiple = getCorrectMultipleFromTradingVolume(userTradingVolume, lastMultiples)
       const multiplier = correspondingMultiple? correspondingMultiple.multiplier: 0

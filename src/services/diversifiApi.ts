@@ -32,7 +32,7 @@ export const getCorrectMultipleFromTradingVolume = (
 export const getVolumeFromUser = async (address: string) => {
   const volumns = await getLast24HoursVolume()
 
-  const userHasTrade = volumns.find((volume: any) => volume.address === address)
+  const userHasTrade = volumns.find((volume: any) => volume.address === address.toLowerCase())
   const userTradingVolume = userHasTrade ? userHasTrade.USDValue : 0
 
   return userTradingVolume
