@@ -6,6 +6,7 @@ export const getLast24HoursVolume = async () => {
     const url =
       process.env.DIVERSIFI_URL +
       `/trading/r/USDRanking?startDate=${aDayBeforeInUnix() * 1000}&endDate=${nowInUnix() * 1000}`;
+    console.log(url)
     const response = await fetch(url);
     return await response.json();
   } catch (e) {
@@ -31,9 +32,9 @@ export const getCorrectMultipleFromTradingVolume = (
 
 export const getVolumeFromUser = async (address: string) => {
   const volumns = await getLast24HoursVolume()
-
+  console.log(volumns)
   const userHasTrade = volumns.find((volume: any) => volume.address === address.toLowerCase())
-  const userTradingVolume = userHasTrade ? userHasTrade.USDValue : 0
-
+  const userTradingVolume = userHasTrade ? userHasTrade.USDVolume : 0
+  console.log(userTradingVolume)
   return userTradingVolume
 }
