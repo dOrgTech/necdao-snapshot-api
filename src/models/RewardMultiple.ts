@@ -1,7 +1,7 @@
 import { db } from "../services";
 
 export interface RewardMultipleType {
-  id: string
+  multipliers_id: string
   lower_limit: number,
   multiplier: number,
 }
@@ -11,7 +11,7 @@ export class RewardMultiple {
     const connection = await db.connect();
     try {
       const rewardMultiples = await connection.manyOrNone(
-        `SELECT * from multipliers 
+        `SELECT *, multipliers.id AS multipliers_id from multipliers 
         JOIN multiplier_group ON multiplier_group.id = multipliers.fk_multiplier_group
         WHERE fk_multiplier_group = (SELECT id FROM multiplier_group ORDER BY date_created DESC LIMIT 1)`
       );

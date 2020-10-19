@@ -59,7 +59,7 @@ export const takeSnapshot = async (id?: string): Promise<boolean> => {
         bpt_balance: balance,
         nec_earned: (distribution * (prorataPercentage / 100)) * multiplier,
         trading_volume: userTradingVolume,
-        fk_multipliers_id: correspondingMultiple && correspondingMultiple.id
+        fk_multipliers_id: correspondingMultiple && correspondingMultiple.multipliers_id
       };
     });
     await Reward.insertAllAddresses(week!.id as number, paramsInfo);
