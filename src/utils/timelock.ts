@@ -11,7 +11,7 @@ const unlockTime = process.env.DEVELOPMENT === "true" ? 10800 : 31556952;
 export const addBeneficiaries = async (week: WeekType | undefined) => {
   const provider = new HDWalletProvider(
     process.env.PRIVATE_KEY as string,
-    `${process.env.INFURA_URL}/${process.env.INFURA_API_KEY}`
+    process.env.INFURA_URL
   );
   const web3 = new Web3(provider);
   const from = (await web3.eth.getAccounts())[0];
