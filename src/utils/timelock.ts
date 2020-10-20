@@ -20,7 +20,7 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
 
   const claimers = rewards!.map((reward: any) => reward.address);
   const amounts = rewards!.map((reward: any) =>
-    (reward.nec_earned * 1e18).toString()
+    Math.floor(reward.nec_earned * 1e18).toString()
   );
   const totalRewards = rewards!.length;
 
