@@ -35,7 +35,7 @@ export const schedulePeriod = async (request: Request, response: Response) => {
       let end;
 
       if (process.env.DEVELOPMENT === "true") {
-        end = parsedStartDate.add(2, "hour");
+        end = parsedStartDate.add(15, "minute");
       } else {
         end = parsedStartDate.add(1, "week");
       }

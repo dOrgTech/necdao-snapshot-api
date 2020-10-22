@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 
 const { abi, bytecode } = require("../../build/contracts/TokenTimelock.json");
 
-const unlockTime = process.env.DEVELOPMENT === "true" ? 10800 : 31556952;
+const unlockTime = process.env.DEVELOPMENT === "true" ? 300 : 31556952;
 
 export const addBeneficiaries = async (week: WeekType | undefined) => {
   const provider = new HDWalletProvider(
