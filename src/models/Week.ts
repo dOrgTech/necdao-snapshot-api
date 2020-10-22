@@ -54,7 +54,8 @@ export class Week {
     const connection = await db.connect();
     try {
       const weeks = await connection.manyOrNone(
-        `SELECT ROW_NUMBER() OVER(ORDER BY start_date ASC) as week_number, * 
+        `SELECT ROW_NUMBER() OVER(ORDER BY start_date ASC) as week_number, *, 
+        (SELECT sum(nec_earned) FROM reward WHERE fk_week_id = week.id) as nec_to_distribute_with_multiplier
         FROM week ORDER BY start_date ASC`
       );
       return weeks;

@@ -1,10 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
 
-import dayjs, { actualWeekNumber, getCurrentWeek } from "../utils/day";
 import { publishWeek, takeSnapshot } from "../services/snapshot";
 import { tokenVerify } from "../middlewares/tokenVerify";
 import { Reward, Week } from "../models";
-import { parse } from "json2csv";
 import { addBeneficiaries, deployTimeLockingContract } from "../utils/timelock";
 
 const router = Router();
@@ -137,10 +135,7 @@ const getSnapshotCsv = async (
     const snapshotData = await Reward.getAllFromWeek(id)
 
     if(snapshotData) {
-      const csv = parse(snapshotData)
-      res.header('Content-Type', 'text/csv');
-      res.attachment(`snapshot.csv`);
-      res.status(200).json(csv)
+      res.status(200).json({ snapshotData })
     } else {
       res.status(404).json({
         error: true,
