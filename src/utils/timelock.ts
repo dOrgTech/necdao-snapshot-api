@@ -8,10 +8,14 @@ const { abi, bytecode } = require("../../build/contracts/TokenTimelock.json");
 
 const unlockTime = process.env.DEVELOPMENT === "true" ? 300 : 31556952;
 
+const network = process.env.NETWORK || 'rinkeby';
+
+console.log(process.env.NETWORK, network)
+
 export const addBeneficiaries = async (week: WeekType | undefined) => {
   const provider = new HDWalletProvider(
     process.env.PRIVATE_KEY as string,
-    process.env.INFURA_URL
+    `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`
   );
   const web3 = new Web3(provider);
   const from = (await web3.eth.getAccounts())[0];
@@ -72,8 +76,6 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
 };
 
 export const deployTimeLockingContract = async (week: WeekType) => {
-  const network = process.env.NETWORK || 'rinkeby';
-  // const network = 'mainnet';
   const provider = new HDWalletProvider(
     process.env.PRIVATE_KEY as string,
     `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`
