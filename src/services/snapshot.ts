@@ -21,6 +21,8 @@ const getProrataShares = (poolshares: PoolShares[]) => {
   return poolshares.map((p) => {
     const userBalance = Number(p.balance);
 
+    console.log("ID: ", p.userAddress.id)
+
     return {
       address: p.userAddress.id,
       balance: userBalance,
@@ -34,6 +36,8 @@ export const takeSnapshot = async (id?: string): Promise<boolean> => {
   const { data } = await apolloClient.query({
     query: GET_BPT_HOLDERS,
   });
+
+  console.log(JSON.stringify(data))
 
   const shares = getProrataShares(data.poolShares);
   const week = id ? await Week.getWeekById(id) : await getCurrentWeek();
