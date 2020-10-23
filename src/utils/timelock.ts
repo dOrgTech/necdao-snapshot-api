@@ -69,6 +69,9 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
       }
     } else {
       console.log("We are adding the claimers");
+      const estimatedGas = await contractInstance.methods.addBeneficiaries(claimers, amounts).estimateGas({ from })
+      console.log(estimatedGas)
+      
       await contractInstance.methods
         .addBeneficiaries(claimers, amounts)
         .send({ from });
