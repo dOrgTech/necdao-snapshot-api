@@ -61,7 +61,7 @@ export const takeSnapshot = async (id?: string): Promise<boolean> => {
       return {
         address,
         bpt_balance: balance,
-        nec_earned: (distribution * (prorataPercentage / 100)) * multiplier,
+        nec_earned: Number(((distribution * (prorataPercentage / 100)) * multiplier).toFixed(18)),
         trading_volume: userTradingVolume,
         fk_multipliers_id: correspondingMultiple && correspondingMultiple.multipliers_id
       };

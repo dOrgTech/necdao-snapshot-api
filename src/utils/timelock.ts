@@ -1,4 +1,5 @@
 import { Reward, Week, WeekType } from "../models";
+import BN from 'bn.js'
 
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import Web3 from "web3";
@@ -23,8 +24,10 @@ export const addBeneficiaries = async (week: WeekType | undefined) => {
   const rewards = await Reward.getAllFromWeek(week!.id.toString());
 
   const claimers = rewards!.map((reward: any) => reward.address);
-  const amounts = rewards!.map((reward: any) =>
-    Math.floor(reward.nec_earned * 1e18).toString()
+  const amounts = rewards!.map((reward: any) => {
+    console.log(web3.utils.toWei(reward.nec_earned))
+    return web3.utils.toWei(reward.nec_earned)
+  }
   );
   const totalRewards = rewards!.length;
 
