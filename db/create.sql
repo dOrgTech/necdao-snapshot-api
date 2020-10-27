@@ -49,6 +49,6 @@ create table users (
 );
 insert into users (email, password)
 values (
-    'admin2',
-    '$2y$10$FTKIhvE6k040.44R2H4q1uR6.idHzgYM2y607L3Dg/uV4uxhhyHxG'
+    'admin',
+    '$2b$10$wl2dXkpX9jjykpfgT4kGbOVtL6/WExLsZ/q9IxapmPClT4UZbjU9.'
   );
