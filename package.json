@@ -10,7 +10,8 @@
     "prestart": "npm run build",
     "test": "jest",
     "postinstall": "truffle build",
-    "test:contracts": "truffle test ./contracts/test/TokenTimelock.js"
+    "test:contracts": "truffle test ./contracts/test/TokenTimelock.js",
+    "docker:run": "docker-compose up -d"
   },
   "author": "dOrg",
   "license": "ISC",
