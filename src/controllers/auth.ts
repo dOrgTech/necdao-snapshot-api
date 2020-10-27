@@ -10,8 +10,6 @@ const router = Router();
 
 export const auth = async (request: Request, response: Response) => {
   const signIn = (error: Error, user: UserType) => {
-    console.log(error)
-    console.log(user)
     if (error || !user) return response.status(400).json({ error: true, message: 'User not found / Wrong password' });
     request.logIn(user, (error: Error) => {
       if (error) return response.status(400).json({ error: true, message: error });
@@ -42,6 +40,6 @@ export const register = async (request: Request, response: Response) => {
 };
 
 router.post("/login", auth);
-router.post("/signup", register);
+router.post("/signup", tokenVerify, register);
 
 export default router;
