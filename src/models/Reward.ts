@@ -124,7 +124,7 @@ export class Reward {
           );
           queries.push(period);
         });
-        transaction.batch(queries);
+        return await transaction.batch(queries);
       });
     } catch (error) {
       console.log("Error ", error);
