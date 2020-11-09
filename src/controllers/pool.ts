@@ -23,10 +23,12 @@ export const calculateAPY = async (_: Request, response: Response) => {
     const apolloClient = GraphQLClient.getInstance();
     const { data: poolData } = await apolloClient.query({
       query: GET_POOL_DATA,
+      fetchPolicy: "no-cache"
     });
 
     const { data: sharesData } = await apolloClient.query({
       query: GET_BPT_HOLDERS,
+      fetchPolicy: "no-cache"
     });
 
     const fetchedResult = await fetch(

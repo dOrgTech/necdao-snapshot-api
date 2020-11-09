@@ -35,6 +35,7 @@ export const takeSnapshot = async (id?: string): Promise<boolean> => {
   const apolloClient = GraphQLClient.getInstance();
   const { data } = await apolloClient.query({
     query: GET_BPT_HOLDERS,
+    fetchPolicy: "no-cache"
   });
 
   console.log(JSON.stringify(data))
